@@ -613,9 +613,6 @@ function getFilteredTasks() {
 
     // 정렬
     filtered.sort((a, b) => {
-        // 타이머 진행 중인 작업 최상단 배치
-        if (a.isRunning && !b.isRunning) return -1;
-        if (!a.isRunning && b.isRunning) return 1;
 
         switch (sortOrder) {
             case 'dueAsc':
@@ -638,10 +635,115 @@ function getFilteredTasks() {
     return filtered;
 }
 
+function createTaskHTML(task) {
+    const channel = channels.find(c => c.id === task.channelId);
+    const channelName = channel ? channel.name : '(삭제된 채널)';
+    const typeLabels = {
+        longform: '롱폼',
+        shortform: '숏폼',
+        thumbnail: '썸네일',
+        other: '기타'
+    };
+
+    const elapsedSeconds = getTaskElapsedSeconds(task);
+    const timeDisplay = formatTime(elapsedSeconds);
+    const hourlyRate = calculateHourlyRate(task.rate, elapsedSeconds);
+
+    let cardClass = 'task-card';
+    cardClass += ` type-${task.type}`; // 작업 타입별 색상 구분
+    if (task.isRunning) cardClass += ' running';
+    if (task.isCompleted) cardClass += ' completed';
+
+    return `
+        <div class="${cardClass}" data-task-id="${task.id}">
+            <div class="task-card-header">
+                <h3 class="task-title">${escapeHtml(task.name)}</h3>
+                <div class="task-actions">
+                    <button class="btn btn-icon btn-secondary" onclick="editTask('${task.id}')" title="수정">✏️</button>
+                    <button class="btn btn-icon btn-danger" onclick="deleteTask('${task.id}')" title="삭제">🗑️</button>
+                </div>
+            </div>
+            
+            <div class="task-meta">
+                <span class="task-badge">📺 ${escapeHtml(channelName)}</span>
+                <span class="task-badge type-${task.type}">${typeLabels[task.type]}</span>
+                ${task.dueDate ? `<span class="task-badge">📅 ${formatDate(task.dueDate)}</span>` : ''}
+            </div>
+            
+            <div class="stopwatch-section">
+                <div class="stopwatch-display" onclick="openTimeEditModal('${task.id}')" data-task-id="${task.id}">${timeDisplay}</div>
+                <div class="stopwatch-controls">
+                    ${task.isRunning
+            ? `<button class="stopwatch-btn pause" onclick="stopStopwatch('${task.id}')">⏸</button>`
+            : `<button class="stopwatch-btn play" onclick="startStopwatch('${task.id}')">▶</button>`
+        }
+                    <button class="stopwatch-btn reset" onclick="resetStopwatch('${task.id}')">↺</button>
+                </div>
+            </div>
+            
+            <div class="video-duration-section">
+                <div class="video-duration-label">완성 영상 길이</div>
+                <div class="video-duration-inputs">
+                    <input type="number" min="0" value="${task.videoDurationMinutes || 0}" 
+                        onchange="updateVideoDuration('${task.id}', 'minutes', this.value)">
+                    <span>분</span>
+                    <input type="number" min="0" max="59" value="${task.videoDurationSeconds || 0}"
+                        onchange="updateVideoDuration('${task.id}', 'seconds', this.value)">
+                    <span>초</span>
+                </div>
+            </div>
+            
+            <div class="task-stats">
+                <div class="task-stat">
+                    <div class="task-stat-label">단가</div>
+                    <div class="task-stat-value rate-editable">
+                        <input type="number" class="rate-input" value="${task.rate || 0}" 
+                            onchange="updateTaskRate('${task.id}', this.value)"
+                            ${task.isRateLocked ? '' : 'disabled'}>
+                        <span class="rate-display ${task.isRateLocked ? 'hidden' : ''}">${formatCurrency(task.rate)}</span>
+                        <button class="rate-lock-btn ${task.isRateLocked ? 'locked' : ''}" 
+                            onclick="toggleRateLock('${task.id}')" 
+                            title="${task.isRateLocked ? '자동 계산으로 전환' : '수동 입력 모드'}">
+                            ${task.isRateLocked ? '🔒' : '✏️'}
+                        </button>
+                    </div>
+                </div>
+                <div class="task-stat">
+                    <div class="task-stat-label">예상 시급</div>
+                    <div class="task-stat-value">${task.isCompleted && elapsedSeconds > 0 ? formatCurrency(hourlyRate) : '-'}</div>
+                </div>
+            </div>
+            
+            <div class="task-complete-section">
+                <label class="complete-label">
+                    <input type="checkbox" class="complete-checkbox" 
+                        ${task.isCompleted ? 'checked' : ''} 
+                        onchange="toggleTaskComplete('${task.id}')">
+                    <span>작업 완료</span>
+                </label>
+            </div>
+        </div>
+    `;
+}
+
 function renderTasks() {
     const grid = document.getElementById('tasks-grid');
+    const activeSection = document.getElementById('active-tasks-section');
+    const activeGrid = document.getElementById('active-tasks-grid');
     const emptyState = document.getElementById('empty-tasks');
     const filtered = getFilteredTasks();
+
+    // 활성화된 타이머 작업들 분리 (복사본 생성)
+    const activeTasks = tasks.filter(t => t.isRunning);
+
+    // 활성화된 작업 섹션 렌더링
+    if (activeTasks.length > 0) {
+        activeSection.style.display = 'block';
+        activeGrid.innerHTML = activeTasks.map(createTaskHTML).join('');
+    } else {
+        activeSection.style.display = 'none';
+        activeGrid.innerHTML = '';
+    }
 
     if (filtered.length === 0) {
         grid.innerHTML = '';
@@ -651,96 +753,8 @@ function renderTasks() {
 
     emptyState.style.display = 'none';
 
-    grid.innerHTML = filtered.map(task => {
-        const channel = channels.find(c => c.id === task.channelId);
-        const channelName = channel ? channel.name : '(삭제된 채널)';
-        const typeLabels = {
-            longform: '롱폼',
-            shortform: '숏폼',
-            thumbnail: '썸네일',
-            other: '기타'
-        };
-
-        const elapsedSeconds = getTaskElapsedSeconds(task);
-        const timeDisplay = formatTime(elapsedSeconds);
-        const hourlyRate = calculateHourlyRate(task.rate, elapsedSeconds);
-
-        let cardClass = 'task-card';
-        cardClass += ` type-${task.type}`; // 작업 타입별 색상 구분
-        if (task.isRunning) cardClass += ' running';
-        if (task.isCompleted) cardClass += ' completed';
-
-        return `
-            <div class="${cardClass}" data-task-id="${task.id}">
-                <div class="task-card-header">
-                    <h3 class="task-title">${escapeHtml(task.name)}</h3>
-                    <div class="task-actions">
-                        <button class="btn btn-icon btn-secondary" onclick="editTask('${task.id}')" title="수정">✏️</button>
-                        <button class="btn btn-icon btn-danger" onclick="deleteTask('${task.id}')" title="삭제">🗑️</button>
-                    </div>
-                </div>
-                
-                <div class="task-meta">
-                    <span class="task-badge">📺 ${escapeHtml(channelName)}</span>
-                    <span class="task-badge type-${task.type}">${typeLabels[task.type]}</span>
-                    ${task.dueDate ? `<span class="task-badge">📅 ${formatDate(task.dueDate)}</span>` : ''}
-                </div>
-                
-                <div class="stopwatch-section">
-                    <div class="stopwatch-display" onclick="openTimeEditModal('${task.id}')" data-task-id="${task.id}">${timeDisplay}</div>
-                    <div class="stopwatch-controls">
-                        ${task.isRunning
-                ? `<button class="stopwatch-btn pause" onclick="stopStopwatch('${task.id}')">⏸</button>`
-                : `<button class="stopwatch-btn play" onclick="startStopwatch('${task.id}')">▶</button>`
-            }
-                        <button class="stopwatch-btn reset" onclick="resetStopwatch('${task.id}')">↺</button>
-                    </div>
-                </div>
-                
-                <div class="video-duration-section">
-                    <div class="video-duration-label">완성 영상 길이</div>
-                    <div class="video-duration-inputs">
-                        <input type="number" min="0" value="${task.videoDurationMinutes || 0}" 
-                            onchange="updateVideoDuration('${task.id}', 'minutes', this.value)">
-                        <span>분</span>
-                        <input type="number" min="0" max="59" value="${task.videoDurationSeconds || 0}"
-                            onchange="updateVideoDuration('${task.id}', 'seconds', this.value)">
-                        <span>초</span>
-                    </div>
-                </div>
-                
-                <div class="task-stats">
-                    <div class="task-stat">
-                        <div class="task-stat-label">단가</div>
-                        <div class="task-stat-value rate-editable">
-                            <input type="number" class="rate-input" value="${task.rate || 0}" 
-                                onchange="updateTaskRate('${task.id}', this.value)"
-                                ${task.isRateLocked ? '' : 'disabled'}>
-                            <span class="rate-display ${task.isRateLocked ? 'hidden' : ''}">${formatCurrency(task.rate)}</span>
-                            <button class="rate-lock-btn ${task.isRateLocked ? 'locked' : ''}" 
-                                onclick="toggleRateLock('${task.id}')" 
-                                title="${task.isRateLocked ? '자동 계산으로 전환' : '수동 입력 모드'}">
-                                ${task.isRateLocked ? '🔒' : '✏️'}
-                            </button>
-                        </div>
-                    </div>
-                    <div class="task-stat">
-                        <div class="task-stat-label">예상 시급</div>
-                        <div class="task-stat-value">${task.isCompleted && elapsedSeconds > 0 ? formatCurrency(hourlyRate) : '-'}</div>
-                    </div>
-                </div>
-                
-                <div class="task-complete-section">
-                    <label class="complete-label">
-                        <input type="checkbox" class="complete-checkbox" 
-                            ${task.isCompleted ? 'checked' : ''} 
-                            onchange="toggleTaskComplete('${task.id}')">
-                        <span>작업 완료</span>
-                    </label>
-                </div>
-            </div>
-        `;
-    }).join('');
+    // 전체 목록 (활성화된 작업도 원래 위치에 유지됨)
+    grid.innerHTML = filtered.map(createTaskHTML).join('');
 }
 
 function updateVideoDuration(taskId, field, value) {

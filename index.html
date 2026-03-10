@@ -101,6 +101,15 @@
                     </div>
                 </div>
 
+                <div class="active-tasks-section" id="active-tasks-section" style="display: none; margin-bottom: 2rem;">
+                    <h2
+                        style="font-size: 1.1rem; color: var(--primary-color); margin-bottom: 1rem; padding-left: 0.5rem; border-left: 3px solid var(--primary-color);">
+                        ▶ 현재 작업중</h2>
+                    <div class="tasks-grid" id="active-tasks-grid">
+                        <!-- 진행 중인 작업 카드들이 여기에 복사됨 -->
+                    </div>
+                </div>
+
                 <div class="tasks-grid" id="tasks-grid">
                     <!-- 작업 카드들이 여기에 동적으로 추가됨 -->
                 </div>
@@ -585,7 +594,8 @@
                 <button class="modal-close" id="suggestion-modal-close">&times;</button>
             </div>
             <div class="modal-body" style="text-align: center; padding: 2rem 1rem;">
-                <p style="margin-bottom: 1.5rem; font-size: 1.1rem;">건의 사항이나 문의 사항은 아래 메일로 보내주세요!</p>
+                <p style="margin-bottom: 1.5rem; font-size: 1.1rem; line-height: 1.6;">건의 사항이나 문의 사항은<br>아래 메일로 보내주세요!
+                </p>
                 <a href="mailto:boss4534@gmail.com" class="btn btn-primary"
                     style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 1.1rem; padding: 0.8rem 1.5rem;">
                     <span>📧</span> boss4534@gmail.com
