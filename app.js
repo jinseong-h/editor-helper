@@ -377,7 +377,7 @@ function initTaskManagement() {
     });
 
     // 필터링
-    document.getElementById('filter-incomplete')?.addEventListener('change', renderTasks);
+    document.getElementById('filter-show-completed')?.addEventListener('change', renderTasks);
     document.getElementById('filter-channel')?.addEventListener('change', renderTasks);
     document.getElementById('filter-type')?.addEventListener('change', renderTasks);
     document.getElementById('sort-order')?.addEventListener('change', renderTasks);
@@ -589,15 +589,15 @@ function updateChannelSelects() {
 }
 
 function getFilteredTasks() {
-    const showIncompleteOnly = document.getElementById('filter-incomplete')?.checked || false;
+    const showCompleted = document.getElementById('filter-show-completed')?.checked || false;
     const filterChannel = document.getElementById('filter-channel')?.value || '';
     const filterType = document.getElementById('filter-type')?.value || '';
     const sortOrder = document.getElementById('sort-order')?.value || 'createdDesc';
 
     let filtered = [...tasks];
 
-    // 미완료만 보기
-    if (showIncompleteOnly) {
+    // 기본적으로 미완료 작업만 보기
+    if (!showCompleted) {
         filtered = filtered.filter(t => !t.isCompleted);
     }
 
