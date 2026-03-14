@@ -615,6 +615,10 @@ function getFilteredTasks() {
     filtered.sort((a, b) => {
 
         switch (sortOrder) {
+            case 'recentWork':
+                const aTime = a.lastWorkedAt || new Date(a.createdAt).getTime();
+                const bTime = b.lastWorkedAt || new Date(b.createdAt).getTime();
+                return bTime - aTime;
             case 'dueAsc':
                 if (!a.dueDate && !b.dueDate) return 0;
                 if (!a.dueDate) return 1;
@@ -850,6 +854,7 @@ function startStopwatch(taskId) {
 
     task.isRunning = true;
     task.lastStartTime = Date.now();
+    task.lastWorkedAt = Date.now();
     saveData();
 
     // UI 업데이트 인터벌
@@ -907,6 +912,7 @@ function stopStopwatch(taskId) {
 
     task.isRunning = false;
     task.lastStartTime = null;
+    task.lastWorkedAt = Date.now();
     saveData();
 
     // 인터벌 정리
@@ -973,6 +979,7 @@ function initTimeEditModal() {
         if (!task) return;
 
         task.elapsedSeconds = (hours * 3600) + (minutes * 60) + seconds;
+        task.lastWorkedAt = Date.now();
         saveData();
         renderTasks();
         closeModal('time-edit-modal');
