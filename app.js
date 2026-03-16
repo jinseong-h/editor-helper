@@ -1328,6 +1328,7 @@ function updateInvoicePreview() {
                         <th>번호</th>
                         <th>작업명</th>
                         <th>작업종류</th>
+                        <th>영상길이</th>
                         <th>완료일</th>
                         <th class="amount">단가</th>
                     </tr>
@@ -1338,6 +1339,7 @@ function updateInvoicePreview() {
                             <td>${index + 1}</td>
                             <td>${escapeHtml(task.name)}</td>
                             <td>${typeLabels[task.type] || task.type}</td>
+                            <td>${(task.videoDurationMinutes || task.videoDurationSeconds) ? `${task.videoDurationMinutes || 0}분 ${task.videoDurationSeconds || 0}초` : '-'}</td>
                             <td>${formatFullDate(task.completedAt)}</td>
                             <td class="amount">${formatCurrency(task.rate)}</td>
                         </tr>
@@ -1568,6 +1570,7 @@ function generateInvoicePDF() {
                         <th style="width: 50px;">번호</th>
                         <th>작업명</th>
                         <th style="width: 80px;">작업종류</th>
+                        <th style="width: 80px;">영상길이</th>
                         <th style="width: 100px;">완료일</th>
                         <th style="width: 120px;" class="amount">단가</th>
                     </tr>
@@ -1578,6 +1581,7 @@ function generateInvoicePDF() {
                             <td>${index + 1}</td>
                             <td>${escapeHtml(task.name)}</td>
                             <td>${typeLabels[task.type] || task.type}</td>
+                            <td>${(task.videoDurationMinutes || task.videoDurationSeconds) ? `${task.videoDurationMinutes || 0}분 ${task.videoDurationSeconds || 0}초` : '-'}</td>
                             <td>${formatFullDate(task.completedAt)}</td>
                             <td class="amount">${formatCurrency(task.rate)}</td>
                         </tr>
