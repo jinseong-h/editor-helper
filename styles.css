@@ -5,50 +5,45 @@
 
 /* CSS Variables */
 :root {
-    /* Colors - Light Theme */
-    --bg-primary: #f8f9fa;
+    /* Colors - Light Theme (Mint/Teal) */
+    --bg-primary: #F2FBF9;
     --bg-secondary: #ffffff;
-    --bg-tertiary: #f1f3f5;
+    --bg-tertiary: #E8F5F1;
     --bg-card: #ffffff;
-    --bg-card-hover: #f8f9fa;
+    --bg-card-hover: #F2FBF9;
 
-    /* Accent Colors - Sleek White & Blue Theme */
-    --accent-primary: #228be6;
-    /* Modern Blue */
-    --accent-primary-light: #4dabf7;
-    --accent-secondary: #12b886;
-    /* Teal */
-    --accent-warning: #fab005;
-    /* Yellow */
-    --accent-danger: #fa5252;
-    /* Red */
-    --accent-success: #40c057;
-    /* Green */
+    /* Accent Colors - Mint/Teal */
+    --accent-primary: #00D09C;
+    --accent-primary-light: #33EBBC;
+    --accent-secondary: #0EA5E9;
+    --accent-warning: #F59E0B;
+    --accent-danger: #EF4444;
+    --accent-success: #10B981;
 
     /* Text Colors */
-    --text-primary: #212529;
-    --text-secondary: #495057;
-    --text-muted: #868e96;
-    --text-disabled: #ced4da;
+    --text-primary: #1A2B25;
+    --text-secondary: #4A6358;
+    --text-muted: #8A9E95;
+    --text-disabled: #C5D1CC;
     --text-inverse: #ffffff;
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, #228be6 0%, #4dabf7 100%);
-    --gradient-card: linear-gradient(145deg, #ffffff 0%, #f1f3f5 100%);
-    --gradient-running: linear-gradient(135deg, #40c057 0%, #20c997 100%);
+    /* Flat colors (no gradients) */
+    --gradient-primary: #00D09C;
+    --gradient-card: #ffffff;
+    --gradient-running: #10B981;
 
     /* Shadows */
-    --shadow-sm: 0 2px 8px rgba(33, 37, 41, 0.05);
-    --shadow-md: 0 4px 16px rgba(33, 37, 41, 0.08);
-    --shadow-lg: 0 8px 32px rgba(33, 37, 41, 0.12);
-    --shadow-glow: 0 0 20px rgba(34, 139, 230, 0.2);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.08);
+    --shadow-glow: none;
 
     /* Border */
-    --border-color: #dee2e6;
+    --border-color: #D5E5DF;
     --border-radius-sm: 8px;
-    --border-radius-md: 12px;
-    --border-radius-lg: 16px;
-    --border-radius-xl: 24px;
+    --border-radius-md: 10px;
+    --border-radius-lg: 14px;
+    --border-radius-xl: 20px;
 
     /* Spacing */
     --space-xs: 4px;
@@ -59,7 +54,8 @@
     --space-2xl: 48px;
 
     /* Typography */
-    --font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-family: 'Pretendard Variable', 'Pretendard', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace;
     --font-size-xs: 0.75rem;
     --font-size-sm: 0.875rem;
     --font-size-base: 1rem;
@@ -70,49 +66,49 @@
 
     /* Transitions */
     --transition-fast: 0.15s ease;
-    --transition-normal: 0.3s ease;
-    --transition-slow: 0.5s ease;
+    --transition-normal: 0.25s ease;
+    --transition-slow: 0.4s ease;
 }
 
 /* ===================================
    Dark Theme Variables
    =================================== */
 [data-theme="dark"] {
-    /* Colors - Dark Theme */
-    --bg-primary: #1a1b1e;
-    --bg-secondary: #25262b;
-    --bg-tertiary: #2c2e33;
-    --bg-card: #25262b;
-    --bg-card-hover: #2c2e33;
+    /* Colors - Dark Theme (Dark Mint) */
+    --bg-primary: #0F1A17;
+    --bg-secondary: #172220;
+    --bg-tertiary: #1E2D29;
+    --bg-card: #172220;
+    --bg-card-hover: #1E2D29;
 
-    /* Accent Colors - Brighter for dark backgrounds */
-    --accent-primary: #339af0;
-    --accent-primary-light: #74c0fc;
-    --accent-secondary: #20c997;
-    --accent-warning: #fcc419;
-    --accent-danger: #ff6b6b;
-    --accent-success: #51cf66;
+    /* Accent Colors */
+    --accent-primary: #00E4A8;
+    --accent-primary-light: #4DFFC8;
+    --accent-secondary: #38BDF8;
+    --accent-warning: #FBBF24;
+    --accent-danger: #F87171;
+    --accent-success: #34D399;
 
     /* Text Colors */
-    --text-primary: #e4e5e7;
-    --text-secondary: #a6a7ab;
-    --text-muted: #6b6d74;
-    --text-disabled: #4a4c52;
+    --text-primary: #E2EDE8;
+    --text-secondary: #9AB3A9;
+    --text-muted: #5E7A6F;
+    --text-disabled: #3A504A;
     --text-inverse: #ffffff;
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, #339af0 0%, #74c0fc 100%);
-    --gradient-card: linear-gradient(145deg, #25262b 0%, #2c2e33 100%);
-    --gradient-running: linear-gradient(135deg, #51cf66 0%, #20c997 100%);
+    /* Flat colors */
+    --gradient-primary: #00E4A8;
+    --gradient-card: #172220;
+    --gradient-running: #34D399;
 
     /* Shadows */
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.25);
-    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.35);
-    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.45);
-    --shadow-glow: 0 0 20px rgba(51, 154, 240, 0.3);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.5);
+    --shadow-glow: none;
 
     /* Border */
-    --border-color: #373a40;
+    --border-color: #2A3D37;
 }
 
 /* ===================================
@@ -220,7 +216,7 @@
     height: 24px;
     min-width: 24px;
     border-radius: 50%;
-    background: var(--gradient-primary);
+    background: var(--accent-primary);
     color: var(--text-inverse);
     font-size: var(--font-size-xs);
     font-weight: 700;
@@ -314,10 +310,7 @@ body {
 .brand-text {
     font-size: var(--font-size-xl);
     font-weight: 700;
-    background: var(--gradient-primary);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--accent-primary);
 }
 
 .nav-tabs {
@@ -347,9 +340,8 @@ body {
 }
 
 .nav-tab.active {
-    background: var(--gradient-primary);
+    background: var(--accent-primary);
     color: var(--text-inverse);
-    box-shadow: var(--shadow-glow);
 }
 
 .tab-icon {
@@ -421,14 +413,13 @@ body {
 }
 
 .btn-primary {
-    background: var(--gradient-primary);
+    background: var(--accent-primary);
     color: var(--text-inverse);
-    box-shadow: var(--shadow-sm);
 }
 
 .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-glow);
+    filter: brightness(1.1);
+    transform: translateY(-1px);
 }
 
 .btn-secondary {
@@ -577,7 +568,7 @@ body {
 
 /* Task Card */
 .task-card {
-    background: var(--gradient-card);
+    background: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius-lg);
     padding: var(--space-lg);
@@ -593,14 +584,14 @@ body {
     left: 0;
     right: 0;
     height: 3px;
-    background: var(--gradient-primary);
+    background: var(--accent-primary);
     opacity: 0;
     transition: opacity var(--transition-normal);
 }
 
 .task-card:hover {
-    box-shadow: var(--shadow-lg);
-    border-color: rgba(34, 139, 230, 0.3);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(0, 208, 156, 0.3);
 }
 
 .task-card:hover::before {
@@ -626,12 +617,12 @@ body {
 
 .task-card.running {
     border-width: 2px;
-    background: linear-gradient(145deg, rgba(64, 192, 87, 0.1) 0%, rgba(18, 184, 134, 0.05) 100%);
+    background: rgba(16, 185, 129, 0.06);
     animation: pulse-border 2s infinite;
 }
 
 .task-card.running::before {
-    background: var(--gradient-running);
+    background: var(--accent-success);
     opacity: 1;
 }
 
@@ -672,8 +663,8 @@ body {
 }
 
 .summary-card.highlight-blue {
-    background: linear-gradient(135deg, rgba(34, 139, 230, 0.1) 0%, rgba(34, 139, 230, 0.02) 100%);
-    border-color: rgba(34, 139, 230, 0.3);
+    background: rgba(0, 208, 156, 0.08);
+    border-color: rgba(0, 208, 156, 0.25);
 }
 
 .summary-card.highlight-blue .summary-value {
@@ -747,8 +738,10 @@ body {
 }
 
 .task-card.completed {
-    background: linear-gradient(145deg, rgba(64, 192, 87, 0.1) 0%, rgba(64, 192, 87, 0.02) 100%);
-    border-color: rgba(64, 192, 87, 0.3);
+    opacity: 0.55;
+    background: var(--bg-tertiary);
+    border-color: var(--accent-success);
+    border-left: 4px solid var(--accent-success) !important;
 }
 
 .task-card.completed::before {
@@ -756,8 +749,28 @@ body {
     opacity: 1;
 }
 
+.task-card.completed::after {
+    content: '✅ 완료';
+    position: absolute;
+    top: var(--space-md);
+    right: var(--space-md);
+    background: var(--accent-success);
+    color: white;
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 999px;
+    z-index: 2;
+}
+
+.task-card.completed .task-title {
+    text-decoration: line-through;
+    text-decoration-color: var(--text-muted);
+}
+
 .task-card.completed:hover {
-    border-color: rgba(64, 192, 87, 0.5);
+    opacity: 0.75;
+    border-color: var(--accent-success);
 }
 
 /* ===================================
@@ -765,23 +778,23 @@ body {
    작업 타입별 색상 구분
    =================================== */
 
-/* 롱폼 - 보라색 */
+/* 롱폼 - 틸색 */
 .task-card.type-longform {
     border-left: 4px solid var(--accent-primary);
 }
 
 .task-card.type-longform::before {
-    background: var(--gradient-primary);
+    background: var(--accent-primary);
     opacity: 1;
 }
 
-/* 숏폼 - 청록색 */
+/* 숏폼 - 청색 */
 .task-card.type-shortform {
     border-left: 4px solid var(--accent-secondary);
 }
 
 .task-card.type-shortform::before {
-    background: linear-gradient(135deg, #12b886 0%, #20c997 100%);
+    background: var(--accent-secondary);
     opacity: 1;
 }
 
@@ -791,7 +804,7 @@ body {
 }
 
 .task-card.type-thumbnail::before {
-    background: linear-gradient(135deg, #fab005 0%, #fcc419 100%);
+    background: var(--accent-warning);
     opacity: 1;
 }
 
@@ -801,25 +814,25 @@ body {
 }
 
 .task-card.type-other::before {
-    background: linear-gradient(135deg, var(--text-muted) 0%, var(--text-disabled) 100%);
+    background: var(--text-muted);
     opacity: 0.5;
 }
 
 /* 완료 상태일 때 타입 색상 유지하되 투명도 조절 */
 .task-card.completed.type-longform {
-    border-left-color: rgba(34, 139, 230, 0.6);
+    border-left-color: var(--accent-success) !important;
 }
 
 .task-card.completed.type-shortform {
-    border-left-color: rgba(18, 184, 134, 0.6);
+    border-left-color: var(--accent-success) !important;
 }
 
 .task-card.completed.type-thumbnail {
-    border-left-color: rgba(250, 176, 5, 0.6);
+    border-left-color: var(--accent-success) !important;
 }
 
 .task-card.completed.type-other {
-    border-left-color: rgba(134, 142, 150, 0.5);
+    border-left-color: var(--accent-success) !important;
 }
 
 /* 실행 중일 때는 상단 바만 실행 색상으로 변경 (왼쪽 테두리는 타입 색상 유지) */
@@ -870,17 +883,17 @@ body {
 }
 
 .task-badge.type-longform {
-    background: rgba(34, 139, 230, 0.1);
+    background: rgba(0, 208, 156, 0.1);
     color: var(--accent-primary);
 }
 
 .task-badge.type-shortform {
-    background: rgba(18, 184, 134, 0.1);
+    background: rgba(14, 165, 233, 0.1);
     color: var(--accent-secondary);
 }
 
 .task-badge.type-thumbnail {
-    background: rgba(250, 176, 5, 0.1);
+    background: rgba(245, 158, 11, 0.1);
     color: var(--accent-warning);
 }
 
@@ -900,7 +913,7 @@ body {
 .stopwatch-display {
     font-size: var(--font-size-2xl);
     font-weight: 700;
-    font-family: 'Courier New', monospace;
+    font-family: var(--font-mono);
     text-align: center;
     margin-bottom: var(--space-sm);
     color: var(--text-primary);
@@ -1156,7 +1169,7 @@ body {
 }
 
 .summary-card.highlight {
-    background: var(--gradient-primary);
+    background: var(--accent-primary);
     border-color: var(--accent-primary);
 }
 
@@ -1226,7 +1239,7 @@ body {
 
 .chart-bar-fill {
     height: 100%;
-    background: var(--gradient-primary);
+    background: var(--accent-primary);
     border-radius: var(--border-radius-sm);
     transition: width 0.5s ease;
     min-width: 2px;
@@ -1958,10 +1971,9 @@ form {
 }
 
 .month-btn.active {
-    background: var(--gradient-primary);
+    background: var(--accent-primary);
     border-color: var(--accent-primary);
-    color: var(--text-primary);
-    box-shadow: var(--shadow-glow);
+    color: var(--text-inverse);
 }
 
 /* Custom Period Selector */
@@ -2150,8 +2162,8 @@ form {
 }
 
 .invoice-bank-info {
-    background: rgba(51, 154, 240, 0.1);
-    border: 1px solid rgba(51, 154, 240, 0.3);
+    background: rgba(0, 208, 156, 0.08);
+    border: 1px solid rgba(0, 208, 156, 0.25);
     border-radius: var(--border-radius-md);
     padding: var(--space-md);
 }
@@ -2175,44 +2187,44 @@ form {
    Dark Mode Specific Overrides
    =================================== */
 [data-theme="dark"] .navbar {
-    background: rgba(37, 38, 43, 0.95);
+    background: rgba(23, 34, 32, 0.95);
 }
 
 [data-theme="dark"] .task-card.running {
-    background: linear-gradient(145deg, rgba(81, 207, 102, 0.12) 0%, rgba(32, 201, 151, 0.06) 100%);
+    background: rgba(52, 211, 153, 0.08);
 }
 
 [data-theme="dark"] .task-card.completed {
-    background: linear-gradient(145deg, rgba(81, 207, 102, 0.1) 0%, rgba(81, 207, 102, 0.02) 100%);
+    background: var(--bg-tertiary);
 }
 
 [data-theme="dark"] .task-card:hover {
-    border-color: rgba(51, 154, 240, 0.4);
+    border-color: rgba(0, 228, 168, 0.35);
 }
 
 [data-theme="dark"] .task-badge.type-longform {
-    background: rgba(51, 154, 240, 0.15);
+    background: rgba(0, 228, 168, 0.12);
 }
 
 [data-theme="dark"] .task-badge.type-shortform {
-    background: rgba(32, 201, 151, 0.15);
+    background: rgba(56, 189, 248, 0.12);
 }
 
 [data-theme="dark"] .task-badge.type-thumbnail {
-    background: rgba(252, 196, 25, 0.15);
+    background: rgba(251, 191, 36, 0.12);
 }
 
 [data-theme="dark"] .task-badge.type-other {
-    background: rgba(107, 109, 116, 0.15);
+    background: rgba(94, 122, 111, 0.15);
 }
 
 [data-theme="dark"] .summary-card.highlight-blue {
-    background: linear-gradient(135deg, rgba(51, 154, 240, 0.15) 0%, rgba(51, 154, 240, 0.04) 100%);
-    border-color: rgba(51, 154, 240, 0.35);
+    background: rgba(0, 228, 168, 0.1);
+    border-color: rgba(0, 228, 168, 0.3);
 }
 
 [data-theme="dark"] .sync-status-card {
-    background: rgba(32, 201, 151, 0.12);
+    background: rgba(52, 211, 153, 0.1);
 }
 
 [data-theme="dark"] .toggle-label input:checked+.toggle-switch::after {
