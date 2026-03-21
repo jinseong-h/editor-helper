@@ -654,67 +654,71 @@ function createTaskHTML(task) {
     const hourlyRate = calculateHourlyRate(task.rate, elapsedSeconds);
 
     let cardClass = 'task-card';
-    cardClass += ` type-${task.type}`; // 작업 타입별 색상 구분
+    cardClass += ` type-${task.type}`;
     if (task.isRunning) cardClass += ' running';
     if (task.isCompleted) cardClass += ' completed';
 
     return `
         <div class="${cardClass}" data-task-id="${task.id}">
             <div class="task-card-header">
-                <h3 class="task-title">${escapeHtml(task.name)}</h3>
+                <div class="task-header-left">
+                    <h3 class="task-title">${escapeHtml(task.name)}</h3>
+                    <div class="task-meta">
+                        <span class="task-badge">📺 ${escapeHtml(channelName)}</span>
+                        <span class="task-badge type-${task.type}">${typeLabels[task.type]}</span>
+                        ${task.dueDate ? `<span class="task-badge">📅 ${formatDate(task.dueDate)}</span>` : ''}
+                    </div>
+                </div>
                 <div class="task-actions">
+                    ${task.isCompleted ? '<span class="completed-badge">완료</span>' : ''}
                     <button class="btn btn-icon btn-secondary" onclick="editTask('${task.id}')" title="수정">✏️</button>
                     <button class="btn btn-icon btn-danger" onclick="deleteTask('${task.id}')" title="삭제">🗑️</button>
                 </div>
             </div>
             
-            <div class="task-meta">
-                <span class="task-badge">📺 ${escapeHtml(channelName)}</span>
-                <span class="task-badge type-${task.type}">${typeLabels[task.type]}</span>
-                ${task.dueDate ? `<span class="task-badge">📅 ${formatDate(task.dueDate)}</span>` : ''}
-            </div>
-            
-            <div class="stopwatch-section">
-                <div class="stopwatch-display" onclick="openTimeEditModal('${task.id}')" data-task-id="${task.id}">${timeDisplay}</div>
-                <div class="stopwatch-controls">
-                    ${task.isRunning
+            <div class="task-body-grid">
+                <div class="stopwatch-section">
+                    <div class="stopwatch-display" onclick="openTimeEditModal('${task.id}')" data-task-id="${task.id}">${timeDisplay}</div>
+                    <div class="stopwatch-controls">
+                        ${task.isRunning
             ? `<button class="stopwatch-btn pause" onclick="stopStopwatch('${task.id}')">⏸</button>`
             : `<button class="stopwatch-btn play" onclick="startStopwatch('${task.id}')">▶</button>`
         }
-                    <button class="stopwatch-btn reset" onclick="resetStopwatch('${task.id}')">↺</button>
-                </div>
-            </div>
-            
-            <div class="video-duration-section">
-                <div class="video-duration-label">완성 영상 길이</div>
-                <div class="video-duration-inputs">
-                    <input type="number" min="0" value="${task.videoDurationMinutes || 0}" 
-                        onchange="updateVideoDuration('${task.id}', 'minutes', this.value)">
-                    <span>분</span>
-                    <input type="number" min="0" max="59" value="${task.videoDurationSeconds || 0}"
-                        onchange="updateVideoDuration('${task.id}', 'seconds', this.value)">
-                    <span>초</span>
-                </div>
-            </div>
-            
-            <div class="task-stats">
-                <div class="task-stat">
-                    <div class="task-stat-label">단가</div>
-                    <div class="task-stat-value rate-editable">
-                        <input type="number" class="rate-input" value="${task.rate || 0}" 
-                            onchange="updateTaskRate('${task.id}', this.value)"
-                            ${task.isRateLocked ? '' : 'disabled'}>
-                        <span class="rate-display ${task.isRateLocked ? 'hidden' : ''}">${formatCurrency(task.rate)}</span>
-                        <button class="rate-lock-btn ${task.isRateLocked ? 'locked' : ''}" 
-                            onclick="toggleRateLock('${task.id}')" 
-                            title="${task.isRateLocked ? '자동 계산으로 전환' : '수동 입력 모드'}">
-                            ${task.isRateLocked ? '🔒' : '✏️'}
-                        </button>
+                        <button class="stopwatch-btn reset" onclick="resetStopwatch('${task.id}')">↺</button>
                     </div>
                 </div>
-                <div class="task-stat">
-                    <div class="task-stat-label">예상 시급</div>
-                    <div class="task-stat-value">${task.isCompleted && elapsedSeconds > 0 ? formatCurrency(hourlyRate) : '-'}</div>
+                <div class="task-info-col">
+                    <div class="video-duration-section">
+                        <div class="video-duration-label">영상 길이</div>
+                        <div class="video-duration-inputs">
+                            <input type="number" min="0" value="${task.videoDurationMinutes || 0}" 
+                                onchange="updateVideoDuration('${task.id}', 'minutes', this.value)">
+                            <span>분</span>
+                            <input type="number" min="0" max="59" value="${task.videoDurationSeconds || 0}"
+                                onchange="updateVideoDuration('${task.id}', 'seconds', this.value)">
+                            <span>초</span>
+                        </div>
+                    </div>
+                    <div class="task-stats-inline">
+                        <div class="task-stat-inline">
+                            <span class="task-stat-label">단가</span>
+                            <span class="task-stat-value rate-editable">
+                                <input type="number" class="rate-input" value="${task.rate || 0}" 
+                                    onchange="updateTaskRate('${task.id}', this.value)"
+                                    ${task.isRateLocked ? '' : 'disabled'}>
+                                <span class="rate-display ${task.isRateLocked ? 'hidden' : ''}">${formatCurrency(task.rate)}</span>
+                                <button class="rate-lock-btn ${task.isRateLocked ? 'locked' : ''}" 
+                                    onclick="toggleRateLock('${task.id}')" 
+                                    title="${task.isRateLocked ? '자동 계산으로 전환' : '수동 입력 모드'}">
+                                    ${task.isRateLocked ? '🔒' : '✏️'}
+                                </button>
+                            </span>
+                        </div>
+                        <div class="task-stat-inline">
+                            <span class="task-stat-label">시급</span>
+                            <span class="task-stat-value">${task.isCompleted && elapsedSeconds > 0 ? formatCurrency(hourlyRate) : '-'}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
             

@@ -1,49 +1,60 @@
 /* ===================================
    편집 작업 관리 앱 - 스타일시트
-   Premium Dark Theme Design System
+   Warm Burgundy Design System
    =================================== */
+
+/* PaperlogyOTF Font */
+@font-face { font-family: 'PaperlogyOTF'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-1Thin.woff2') format('woff2'); font-weight: 100; font-style: normal; font-display: swap; }
+@font-face { font-family: 'PaperlogyOTF'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-2ExtraLight.woff2') format('woff2'); font-weight: 200; font-style: normal; font-display: swap; }
+@font-face { font-family: 'PaperlogyOTF'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-3Light.woff2') format('woff2'); font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: 'PaperlogyOTF'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-4Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'PaperlogyOTF'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-5Medium.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: 'PaperlogyOTF'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-6SemiBold.woff2') format('woff2'); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: 'PaperlogyOTF'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-7Bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: 'PaperlogyOTF'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-8ExtraBold.woff2') format('woff2'); font-weight: 800; font-style: normal; font-display: swap; }
+@font-face { font-family: 'PaperlogyOTF'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-9Black.woff2') format('woff2'); font-weight: 900; font-style: normal; font-display: swap; }
 
 /* CSS Variables */
 :root {
-    /* Colors - Light Theme (Mint/Teal) */
-    --bg-primary: #F2FBF9;
+    /* Colors - Light Theme (Warm Burgundy) */
+    --bg-primary: #FDF8F3;
     --bg-secondary: #ffffff;
-    --bg-tertiary: #E8F5F1;
+    --bg-tertiary: #F9F0E8;
     --bg-card: #ffffff;
-    --bg-card-hover: #F2FBF9;
+    --bg-card-hover: #FDF8F3;
 
-    /* Accent Colors - Mint/Teal */
-    --accent-primary: #00D09C;
-    --accent-primary-light: #33EBBC;
-    --accent-secondary: #0EA5E9;
-    --accent-warning: #F59E0B;
-    --accent-danger: #EF4444;
-    --accent-success: #10B981;
+    /* Accent Colors - Warm Palette */
+    --accent-primary: #8A2D3B;
+    --accent-primary-light: #BE5B50;
+    --accent-secondary: #641B2E;
+    --accent-warning: #FBDB93;
+    --accent-danger: #BE5B50;
+    --accent-success: #5A8A6A;
 
     /* Text Colors */
-    --text-primary: #1A2B25;
-    --text-secondary: #4A6358;
-    --text-muted: #8A9E95;
-    --text-disabled: #C5D1CC;
+    --text-primary: #2D1F1F;
+    --text-secondary: #5C4545;
+    --text-muted: #9A8585;
+    --text-disabled: #CABFBF;
     --text-inverse: #ffffff;
 
-    /* Flat colors (no gradients) */
-    --gradient-primary: #00D09C;
+    /* Flat colors */
+    --gradient-primary: #8A2D3B;
     --gradient-card: #ffffff;
-    --gradient-running: #10B981;
+    --gradient-running: #5A8A6A;
 
     /* Shadows */
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
-    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.08);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.07);
+    --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.1);
     --shadow-glow: none;
 
     /* Border */
-    --border-color: #D5E5DF;
-    --border-radius-sm: 8px;
-    --border-radius-md: 10px;
-    --border-radius-lg: 14px;
-    --border-radius-xl: 20px;
+    --border-color: #E8DCD0;
+    --border-radius-sm: 4px;
+    --border-radius-md: 6px;
+    --border-radius-lg: 8px;
+    --border-radius-xl: 12px;
 
     /* Spacing */
     --space-xs: 4px;
@@ -54,7 +65,7 @@
     --space-2xl: 48px;
 
     /* Typography */
-    --font-family: 'Pretendard Variable', 'Pretendard', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-family: 'PaperlogyOTF', 'Pretendard Variable', 'Pretendard', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-mono: 'JetBrains Mono', 'SF Mono', 'Consolas', monospace;
     --font-size-xs: 0.75rem;
     --font-size-sm: 0.875rem;
@@ -74,41 +85,41 @@
    Dark Theme Variables
    =================================== */
 [data-theme="dark"] {
-    /* Colors - Dark Theme (Dark Mint) */
-    --bg-primary: #0F1A17;
-    --bg-secondary: #172220;
-    --bg-tertiary: #1E2D29;
-    --bg-card: #172220;
-    --bg-card-hover: #1E2D29;
+    /* Colors - Dark Theme (Dark Warm) */
+    --bg-primary: #1A1210;
+    --bg-secondary: #231917;
+    --bg-tertiary: #2E221F;
+    --bg-card: #231917;
+    --bg-card-hover: #2E221F;
 
     /* Accent Colors */
-    --accent-primary: #00E4A8;
-    --accent-primary-light: #4DFFC8;
-    --accent-secondary: #38BDF8;
-    --accent-warning: #FBBF24;
-    --accent-danger: #F87171;
-    --accent-success: #34D399;
+    --accent-primary: #D4736B;
+    --accent-primary-light: #FBDB93;
+    --accent-secondary: #A34858;
+    --accent-warning: #FBDB93;
+    --accent-danger: #D4736B;
+    --accent-success: #7BAF8A;
 
     /* Text Colors */
-    --text-primary: #E2EDE8;
-    --text-secondary: #9AB3A9;
-    --text-muted: #5E7A6F;
-    --text-disabled: #3A504A;
+    --text-primary: #F0E4DC;
+    --text-secondary: #B8A39A;
+    --text-muted: #7A665C;
+    --text-disabled: #4A3A34;
     --text-inverse: #ffffff;
 
     /* Flat colors */
-    --gradient-primary: #00E4A8;
-    --gradient-card: #172220;
-    --gradient-running: #34D399;
+    --gradient-primary: #D4736B;
+    --gradient-card: #231917;
+    --gradient-running: #7BAF8A;
 
     /* Shadows */
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.4);
-    --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.5);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
+    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.45);
+    --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.55);
     --shadow-glow: none;
 
     /* Border */
-    --border-color: #2A3D37;
+    --border-color: #3D2D28;
 }
 
 /* ===================================
@@ -569,33 +580,16 @@ body {
 /* Task Card */
 .task-card {
     background: var(--bg-card);
-    border: 1px solid var(--border-color);
+    border: 2px solid var(--border-color);
     border-radius: var(--border-radius-lg);
-    padding: var(--space-lg);
+    padding: var(--space-md);
     transition: all var(--transition-normal);
     position: relative;
-    overflow: hidden;
-}
-
-.task-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: var(--accent-primary);
-    opacity: 0;
-    transition: opacity var(--transition-normal);
 }
 
 .task-card:hover {
     box-shadow: var(--shadow-md);
-    border-color: rgba(0, 208, 156, 0.3);
-}
-
-.task-card:hover::before {
-    opacity: 1;
+    border-color: var(--accent-primary);
 }
 
 @keyframes pulse-border {
@@ -616,14 +610,9 @@ body {
 }
 
 .task-card.running {
-    border-width: 2px;
-    background: rgba(16, 185, 129, 0.06);
+    border: 2px solid var(--accent-success);
+    background: rgba(90, 138, 106, 0.06);
     animation: pulse-border 2s infinite;
-}
-
-.task-card.running::before {
-    background: var(--accent-success);
-    opacity: 1;
 }
 
 /* Time Log & New Components */
@@ -663,8 +652,8 @@ body {
 }
 
 .summary-card.highlight-blue {
-    background: rgba(0, 208, 156, 0.08);
-    border-color: rgba(0, 208, 156, 0.25);
+    background: rgba(138, 45, 59, 0.06);
+    border-color: rgba(138, 45, 59, 0.2);
 }
 
 .summary-card.highlight-blue .summary-value {
@@ -738,29 +727,9 @@ body {
 }
 
 .task-card.completed {
-    opacity: 0.55;
+    opacity: 0.5;
     background: var(--bg-tertiary);
-    border-color: var(--accent-success);
-    border-left: 4px solid var(--accent-success) !important;
-}
-
-.task-card.completed::before {
-    background: var(--accent-success);
-    opacity: 1;
-}
-
-.task-card.completed::after {
-    content: '✅ 완료';
-    position: absolute;
-    top: var(--space-md);
-    right: var(--space-md);
-    background: var(--accent-success);
-    color: white;
-    font-size: var(--font-size-xs);
-    font-weight: 700;
-    padding: 2px 10px;
-    border-radius: 999px;
-    z-index: 2;
+    border: 2px solid var(--accent-success);
 }
 
 .task-card.completed .task-title {
@@ -769,7 +738,7 @@ body {
 }
 
 .task-card.completed:hover {
-    opacity: 0.75;
+    opacity: 0.7;
     border-color: var(--accent-success);
 }
 
@@ -778,69 +747,32 @@ body {
    작업 타입별 색상 구분
    =================================== */
 
-/* 롱폼 - 틸색 */
+/* 롱폼 - 버건디 */
 .task-card.type-longform {
-    border-left: 4px solid var(--accent-primary);
+    border-color: var(--accent-primary);
 }
 
-.task-card.type-longform::before {
-    background: var(--accent-primary);
-    opacity: 1;
-}
-
-/* 숏폼 - 청색 */
+/* 숏폼 - 다크레드 */
 .task-card.type-shortform {
-    border-left: 4px solid var(--accent-secondary);
+    border-color: var(--accent-secondary);
 }
 
-.task-card.type-shortform::before {
-    background: var(--accent-secondary);
-    opacity: 1;
-}
-
-/* 썸네일 - 노란색/주황색 */
+/* 썸네일 - 골드 */
 .task-card.type-thumbnail {
-    border-left: 4px solid var(--accent-warning);
-}
-
-.task-card.type-thumbnail::before {
-    background: var(--accent-warning);
-    opacity: 1;
+    border-color: var(--accent-warning);
 }
 
 /* 기타 - 회색 */
 .task-card.type-other {
-    border-left: 4px solid var(--text-muted);
+    border-color: var(--text-muted);
 }
 
-.task-card.type-other::before {
-    background: var(--text-muted);
-    opacity: 0.5;
-}
-
-/* 완료 상태일 때 타입 색상 유지하되 투명도 조절 */
-.task-card.completed.type-longform {
-    border-left-color: var(--accent-success) !important;
-}
-
-.task-card.completed.type-shortform {
-    border-left-color: var(--accent-success) !important;
-}
-
-.task-card.completed.type-thumbnail {
-    border-left-color: var(--accent-success) !important;
-}
-
+/* 완료 상태일 때 성공 색상으로 통일 */
+.task-card.completed.type-longform,
+.task-card.completed.type-shortform,
+.task-card.completed.type-thumbnail,
 .task-card.completed.type-other {
-    border-left-color: var(--accent-success) !important;
-}
-
-/* 실행 중일 때는 상단 바만 실행 색상으로 변경 (왼쪽 테두리는 타입 색상 유지) */
-.task-card.running.type-longform,
-.task-card.running.type-shortform,
-.task-card.running.type-thumbnail,
-.task-card.running.type-other {
-    border-left-width: 4px;
+    border-color: var(--accent-success);
 }
 
 .task-card-header {
@@ -883,23 +815,82 @@ body {
 }
 
 .task-badge.type-longform {
-    background: rgba(0, 208, 156, 0.1);
+    background: rgba(138, 45, 59, 0.1);
     color: var(--accent-primary);
 }
 
 .task-badge.type-shortform {
-    background: rgba(14, 165, 233, 0.1);
+    background: rgba(100, 27, 46, 0.1);
     color: var(--accent-secondary);
 }
 
 .task-badge.type-thumbnail {
-    background: rgba(245, 158, 11, 0.1);
-    color: var(--accent-warning);
+    background: rgba(251, 219, 147, 0.3);
+    color: #8B6914;
 }
 
 .task-badge.type-other {
-    background: rgba(134, 142, 150, 0.1);
+    background: rgba(154, 133, 133, 0.1);
     color: var(--text-secondary);
+}
+
+/* Compact Card Layout */
+.task-header-left {
+    flex: 1;
+    min-width: 0;
+}
+
+.task-header-left .task-meta {
+    margin-bottom: 0;
+    margin-top: var(--space-xs);
+}
+
+.completed-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 10px;
+    background: var(--accent-success);
+    color: white;
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    border-radius: var(--border-radius-sm);
+    white-space: nowrap;
+}
+
+.task-body-grid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-md);
+    align-items: start;
+}
+
+.task-info-col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.task-stats-inline {
+    display: flex;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+}
+
+.task-stat-inline {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.task-stat-inline .task-stat-label {
+    margin-bottom: 0;
+    font-weight: 500;
+}
+
+@media (max-width: 480px) {
+    .task-body-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* Stopwatch */
@@ -2162,8 +2153,8 @@ form {
 }
 
 .invoice-bank-info {
-    background: rgba(0, 208, 156, 0.08);
-    border: 1px solid rgba(0, 208, 156, 0.25);
+    background: rgba(138, 45, 59, 0.06);
+    border: 1px solid rgba(138, 45, 59, 0.2);
     border-radius: var(--border-radius-md);
     padding: var(--space-md);
 }
@@ -2187,11 +2178,11 @@ form {
    Dark Mode Specific Overrides
    =================================== */
 [data-theme="dark"] .navbar {
-    background: rgba(23, 34, 32, 0.95);
+    background: rgba(35, 25, 23, 0.95);
 }
 
 [data-theme="dark"] .task-card.running {
-    background: rgba(52, 211, 153, 0.08);
+    background: rgba(123, 175, 138, 0.08);
 }
 
 [data-theme="dark"] .task-card.completed {
@@ -2199,32 +2190,32 @@ form {
 }
 
 [data-theme="dark"] .task-card:hover {
-    border-color: rgba(0, 228, 168, 0.35);
+    border-color: var(--accent-primary);
 }
 
 [data-theme="dark"] .task-badge.type-longform {
-    background: rgba(0, 228, 168, 0.12);
+    background: rgba(212, 115, 107, 0.15);
 }
 
 [data-theme="dark"] .task-badge.type-shortform {
-    background: rgba(56, 189, 248, 0.12);
+    background: rgba(163, 72, 88, 0.15);
 }
 
 [data-theme="dark"] .task-badge.type-thumbnail {
-    background: rgba(251, 191, 36, 0.12);
+    background: rgba(251, 219, 147, 0.15);
 }
 
 [data-theme="dark"] .task-badge.type-other {
-    background: rgba(94, 122, 111, 0.15);
+    background: rgba(122, 102, 92, 0.15);
 }
 
 [data-theme="dark"] .summary-card.highlight-blue {
-    background: rgba(0, 228, 168, 0.1);
-    border-color: rgba(0, 228, 168, 0.3);
+    background: rgba(212, 115, 107, 0.1);
+    border-color: rgba(212, 115, 107, 0.25);
 }
 
 [data-theme="dark"] .sync-status-card {
-    background: rgba(52, 211, 153, 0.1);
+    background: rgba(123, 175, 138, 0.1);
 }
 
 [data-theme="dark"] .toggle-label input:checked+.toggle-switch::after {
@@ -2240,7 +2231,7 @@ form {
 }
 
 [data-theme="dark"] .btn-warning {
-    color: var(--bg-primary);
+    color: var(--text-primary);
 }
 
 /* Smooth transitions for theme switching */
