@@ -1998,8 +1998,23 @@ function initFirebase() {
 
 // 클라우드 동기화 UI 초기화
 function initCloudSync() {
-    // 동기화 버튼
+    // 동기화 버튼 (설정 탭)
     document.getElementById('cloud-sync-btn')?.addEventListener('click', () => {
+        updateSyncModalView();
+        openModal('sync-modal');
+    });
+
+    // 상단 탭바 동기화/로그인 버튼
+    document.getElementById('top-cloud-sync-btn')?.addEventListener('click', () => {
+        const user = firebaseApp ? firebase.auth().currentUser : null;
+        if (!user) {
+            // 미로그인 시 바로 로그인 실행
+            document.getElementById('google-login-btn')?.click();
+        }
+    });
+
+    // 상단 탭바 클라우드 설정 버튼
+    document.getElementById('top-cloud-settings-btn')?.addEventListener('click', () => {
         updateSyncModalView();
         openModal('sync-modal');
     });
@@ -2212,6 +2227,21 @@ function updateSyncStatus(connected) {
     const badge = document.getElementById('sync-status-badge');
     if (badge) {
         badge.style.display = connected ? 'flex' : 'none';
+    }
+
+    // 상단 탭바 상태 업데이트
+    const topBadge = document.getElementById('top-sync-status');
+    const topLoginBtn = document.getElementById('top-cloud-sync-btn');
+    const topSettingsBtn = document.getElementById('top-cloud-settings-btn');
+    
+    if (connected) {
+        if (topBadge) topBadge.style.display = 'flex';
+        if (topLoginBtn) topLoginBtn.style.display = 'none';
+        if (topSettingsBtn) topSettingsBtn.style.display = 'flex';
+    } else {
+        if (topBadge) topBadge.style.display = 'none';
+        if (topLoginBtn) topLoginBtn.style.display = 'flex';
+        if (topSettingsBtn) topSettingsBtn.style.display = 'none';
     }
 }
 

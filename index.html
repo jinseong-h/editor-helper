@@ -35,27 +35,42 @@
                 <span class="brand-icon">🎬</span>
                 <span class="brand-text">편집 관리</span>
             </div>
-            <div class="nav-tabs">
-                <button class="nav-tab active" data-page="tasks">
-                    <span class="tab-icon">📋</span>
-                    <span class="tab-text">작업 목록</span>
-                </button>
-                <button class="nav-tab" data-page="summary">
-                    <span class="tab-icon">📊</span>
-                    <span class="tab-text">요약</span>
-                </button>
-                <button class="nav-tab" data-page="time-log">
-                    <span class="tab-icon">⏱️</span>
-                    <span class="tab-text">작업 시간</span>
-                </button>
-                <button class="nav-tab" data-page="invoice">
-                    <span class="tab-icon">📄</span>
-                    <span class="tab-text">작업내역서</span>
-                </button>
-                <button class="nav-tab" data-page="settings">
-                    <span class="tab-icon">⚙️</span>
-                    <span class="tab-text">설정</span>
-                </button>
+            <div class="nav-right" style="display: flex; align-items: center; gap: 15px;">
+                <div class="nav-tabs">
+                    <button class="nav-tab active" data-page="tasks">
+                        <span class="tab-icon">📋</span>
+                        <span class="tab-text">작업 목록</span>
+                    </button>
+                    <button class="nav-tab" data-page="summary">
+                        <span class="tab-icon">📊</span>
+                        <span class="tab-text">요약</span>
+                    </button>
+                    <button class="nav-tab" data-page="time-log">
+                        <span class="tab-icon">⏱️</span>
+                        <span class="tab-text">작업 시간</span>
+                    </button>
+                    <button class="nav-tab" data-page="invoice">
+                        <span class="tab-icon">📄</span>
+                        <span class="tab-text">작업내역서</span>
+                    </button>
+                    <button class="nav-tab" data-page="settings">
+                        <span class="tab-icon">⚙️</span>
+                        <span class="tab-text">설정</span>
+                    </button>
+                </div>
+                <!-- 상단 클라우드 동기화 UI -->
+                <div class="nav-actions" style="display: flex; align-items: center; gap: 8px;">
+                    <div id="top-sync-status" class="sync-status-badge" style="display: none; padding: 4px 10px; font-size: 0.8rem; margin: 0; height: 36px;">
+                        <span class="sync-dot"></span>
+                        <span id="top-sync-text">연결됨</span>
+                    </div>
+                    <button class="btn btn-primary btn-sm" id="top-cloud-sync-btn" style="height: 36px; padding: 0 12px; font-size: 0.85rem; border-radius: var(--border-radius-md);">
+                        <span style="margin-right: 4px;">☁️</span> 로그인
+                    </button>
+                    <button class="btn btn-secondary btn-sm" id="top-cloud-settings-btn" style="display: none; height: 36px; padding: 0 8px; font-size: 0.85rem; border-radius: var(--border-radius-md);" title="클라우드 설정">
+                        <span>⚙️</span>
+                    </button>
+                </div>
             </div>
         </nav>
 
