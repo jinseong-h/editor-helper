@@ -2398,7 +2398,8 @@ form {
     display: flex;
     flex-direction: column;
     gap: 5rem;
-    padding: 50vh 4rem; /* To allow first and last items to be centered */
+    padding: 50vh 4rem;
+    transition: transform 1.5s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .slider-image {
