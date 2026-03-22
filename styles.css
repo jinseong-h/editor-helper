@@ -2361,11 +2361,23 @@ form {
 }
 
 .login-gate-logo {
-    margin-bottom: var(--space-xl);
+    height: 80px;
+    width: auto;
+    object-fit: contain;
+    margin-bottom: var(--space-lg);
+    animation: float 3s ease-in-out infinite;
 }
 
-.login-gate-logo .brand-logo {
-    height: 80px;
+.login-gate-logo-dark {
+    display: none;
+}
+
+[data-theme="dark"] .login-gate-logo-light {
+    display: none;
+}
+
+[data-theme="dark"] .login-gate-logo-dark {
+    display: block;
 }
 
 .login-gate-desc {
