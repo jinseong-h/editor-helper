@@ -2402,6 +2402,45 @@ saveData = function () {
 };
 
 // ===================================
+// Login Slider UX
+// ===================================
+function initLoginSlider() {
+    const track = document.querySelector('.login-slider-track');
+    if (!track) return;
+    const images = Array.from(track.querySelectorAll('.slider-image'));
+    if (images.length === 0) return;
+
+    let currentIndex = 0;
+    const totalImages = images.length;
+
+    function updateSlider() {
+        images.forEach((img, index) => {
+            if (index === currentIndex) {
+                img.classList.add('active');
+            } else {
+                img.classList.remove('active');
+            }
+        });
+
+        const activeImg = images[currentIndex];
+        if (activeImg) {
+            const containerHeight = track.parentElement.clientHeight;
+            const imgCenter = activeImg.offsetTop + (activeImg.offsetHeight / 2);
+            const offset = (containerHeight / 2) - imgCenter;
+            track.style.transform = `translateY(${offset}px)`;
+        }
+    }
+
+    setTimeout(updateSlider, 100);
+    window.addEventListener('resize', updateSlider);
+
+    setInterval(() => {
+        currentIndex = (currentIndex + 1) % totalImages;
+        updateSlider();
+    }, 3500);
+}
+
+// ===================================
 // Initialization
 // ===================================
 function init() {
@@ -2418,6 +2457,7 @@ function init() {
     initTimeLogPage();
     initDataManagement();
     initCloudSync();
+    initLoginSlider();
 
     // Firebase 초기화 (약간의 지연 후)
     setTimeout(initFirebase, 500);

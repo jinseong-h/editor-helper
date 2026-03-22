@@ -2370,13 +2370,11 @@ form {
 
 .login-gate-right {
     flex: 1.2;
-    background: var(--bg-secondary);
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
     position: relative;
-    border-left: 1px solid var(--border-color);
 }
 
 .login-slider-container {
@@ -2385,36 +2383,43 @@ form {
     position: relative;
     overflow: hidden;
     pointer-events: none;
-    -webkit-mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
-    mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+    -webkit-mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent);
+    mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent);
 }
 
 .login-slider-track {
     display: flex;
     flex-direction: column;
-    gap: 3rem;
-    padding: 3rem 4rem;
-    /* 50% shift to account for 6 original images + 6 cloned images, minus half a gap. */
-    animation: slideVertical 30s linear infinite;
+    gap: 4rem;
+    padding: 50vh 4rem; /* To allow first and last items to be centered */
+    transition: transform 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .slider-image {
     width: 100%;
-    max-width: 600px;
+    max-width: 700px;
     height: auto;
     border-radius: var(--border-radius-lg);
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
     margin: 0 auto;
     border: 1px solid var(--border-color);
+    transition: all 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
+    opacity: 0.4;
+    transform: scale(0.85);
+}
+
+.slider-image.active {
+    opacity: 1;
+    transform: scale(1.05); /* Make it bigger */
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+    z-index: 10;
 }
 
 [data-theme="dark"] .slider-image {
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
 }
-
-@keyframes slideVertical {
-    0% { transform: translateY(0); }
-    100% { transform: translateY(calc(-50% - 1.5rem)); }
+[data-theme="dark"] .slider-image.active {
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8);
 }
 
 @media (max-width: 768px) {
