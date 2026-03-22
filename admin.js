@@ -28,6 +28,8 @@ const totalUsersBadge = document.getElementById('total-users-badge');
 const noticeForm = document.getElementById('notice-form');
 const deleteNoticeBtn = document.getElementById('delete-notice-btn');
 const currentNoticePreview = document.getElementById('current-notice-preview');
+const noticeStartTodayChk = document.getElementById('notice-start-today');
+const noticeStartDateInput = document.getElementById('notice-start-date');
 
 // Initialize
 function init() {
@@ -69,6 +71,23 @@ function init() {
     deleteNoticeBtn.addEventListener('click', () => {
         if (confirm('현재 공지를 삭제하시겠습니까? 메인 화면의 팝업이 즉시 내려갑니다.')) {
             deleteNotice();
+        }
+    });
+
+    noticeStartTodayChk.addEventListener('change', (e) => {
+        if (e.target.checked) {
+            const today = new Date();
+            const kstOffset = 9 * 60 * 60 * 1000;
+            const d = new Date(today.getTime() + kstOffset);
+            const todayStr = `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;
+            
+            noticeStartDateInput.value = todayStr;
+            noticeStartDateInput.setAttribute('readonly', 'true');
+            noticeStartDateInput.style.backgroundColor = 'var(--bg-secondary)';
+        } else {
+            noticeStartDateInput.removeAttribute('readonly');
+            noticeStartDateInput.style.backgroundColor = '';
+            noticeStartDateInput.value = '';
         }
     });
 }
@@ -173,6 +192,9 @@ function publishNotice() {
             document.getElementById('notice-message').value = '';
             document.getElementById('notice-start-date').value = '';
             document.getElementById('notice-end-date').value = '';
+            if (noticeStartTodayChk.checked) {
+                noticeStartTodayChk.click(); // 체크 해제 및 UI 초기화
+            }
         })
         .catch((error) => {
             console.error('Notice publish error:', error);
