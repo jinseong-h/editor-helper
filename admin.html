@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedit - 관리자 페이지</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="admin.css">
+</head>
+
+<body>
+    <div id="loading" class="loading-overlay">
+        <div class="spinner"></div>
+        <p>인증 확인 중...</p>
+    </div>
+
+    <!-- 비관리자 접근 금지 -->
+    <div id="access-denied" class="access-denied">
+        <h1>접근 권한이 없습니다</h1>
+        <p>이 페이지는 관리자 전용입니다.</p>
+        <button id="go-back-btn" class="btn btn-primary">메인으로 돌아가기</button>
+    </div>
+
+    <!-- 관리자 콘솔 -->
+    <div id="admin-panel" class="app-container" style="display: none;">
+        <nav class="navbar">
+            <div class="nav-brand">
+                <span class="brand-text">Feedit 관리자</span>
+            </div>
+            <div class="nav-right">
+                <span id="admin-email" class="admin-email"></span>
+                <button class="btn btn-danger btn-sm" id="admin-logout-btn">로그아웃</button>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <div class="admin-grid">
+                <!-- 사용자 리스트 섹션 -->
+                <section class="admin-section">
+                    <div class="section-header">
+                        <h2>👥 가입자 리스트</h2>
+                        <span class="badge" id="total-users-badge">총 0명</span>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>이메일</th>
+                                    <th>최초 로그인</th>
+                                    <th>최근 로그인</th>
+                                </tr>
+                            </thead>
+                            <tbody id="user-list">
+                                <!-- Users dynamically loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- 공지사항 발행 섹션 -->
+                <section class="admin-section">
+                    <div class="section-header">
+                        <h2>📢 팝업 공지사항 발행</h2>
+                    </div>
+                    <form id="notice-form" class="notice-form">
+                        <div class="form-group">
+                            <label for="notice-message">메시지 (HTML 태그 지원 안됨, 단순 텍스트)</label>
+                            <textarea id="notice-message" rows="4" required placeholder="알릴 내용을 작성하세요..."></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="notice-start-date">노출 시작 날짜</label>
+                                <input type="date" id="notice-start-date" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="notice-end-date">노출 종료 날짜</label>
+                                <input type="date" id="notice-end-date" required>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-danger" id="delete-notice-btn">현재 공지 삭제</button>
+                            <button type="submit" class="btn btn-primary">새 공지 발행</button>
+                        </div>
+                    </form>
+                    <div class="current-notice-status">
+                        <h3>현재 활성화된 공지</h3>
+                        <div id="current-notice-preview" class="notice-preview">불러오는 중...</div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+    <script src="admin.js"></script>
+</body>
+
+</html>

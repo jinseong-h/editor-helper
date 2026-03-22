@@ -648,6 +648,27 @@
         </div>
     </div>
 
+    <!-- 공지사항 팝업 모달 -->
+    <div class="modal" id="notice-modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content modal-small notice-modal-content">
+            <div class="modal-header">
+                <h2>📢 공지사항</h2>
+                <button class="modal-close" id="notice-modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="notice-modal-message" style="white-space: pre-wrap; margin-bottom: 1.5rem; line-height: 1.6; word-break: keep-all;"></p>
+                <div class="notice-footer" style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="checkbox" id="notice-never-show" style="width:16px; height:16px;">
+                        <span style="font-size: 0.9rem; color: var(--text-secondary);">다시 보지 않기</span>
+                    </label>
+                    <button class="btn btn-primary btn-sm" id="notice-modal-ok">닫기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 사용 가이드 모달 -->
     <div class="modal" id="guide-modal">
         <div class="modal-backdrop"></div>

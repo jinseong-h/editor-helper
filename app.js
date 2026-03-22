@@ -209,6 +209,10 @@ function initModals() {
     document.getElementById('task-cancel-btn')?.addEventListener('click', () => closeModal('task-modal'));
     document.getElementById('channel-cancel-btn')?.addEventListener('click', () => closeModal('channel-modal'));
     document.getElementById('time-edit-cancel')?.addEventListener('click', () => closeModal('time-edit-modal'));
+
+    // 공지사항 모달 닫기
+    document.getElementById('notice-modal-close')?.addEventListener('click', closeNoticeModal);
+    document.getElementById('notice-modal-ok')?.addEventListener('click', closeNoticeModal);
 }
 
 // ===================================
@@ -2012,6 +2016,10 @@ function initFirebase() {
             firebase.auth().onAuthStateChanged((user) => {
                 if (user) {
                     console.log('✅ Google 로그인 성공:', user.email);
+                    
+                    // 사용자 로그인 기록 (관리자 페이지용)
+                    trackUserLogin(user);
+
                     // 로그인 게이트 숨기고 앱 보이기
                     showApp();
                     connectToGoogleSync(user);
@@ -2044,6 +2052,9 @@ function showApp() {
     const app = document.getElementById('app-container');
     if (gate) gate.style.display = 'none';
     if (app) app.style.display = 'block';
+
+    // 메인 화면이 보일 때 공지사항 확인
+    checkAndShowNotice();
 }
 
 // 클라우드 동기화 UI 초기화
@@ -2514,3 +2525,68 @@ function init() {
 // DOM 로드 후 초기화
 document.addEventListener('DOMContentLoaded', init);
 
+
+// ===================================
+// User Tracking & Notice System
+// ===================================
+function trackUserLogin(user) {
+    if (!firebaseDb) return;
+    
+    const userRef = firebaseDb.ref(`app_users/${user.uid}`);
+    userRef.once('value').then(snap => {
+        const data = snap.val() || {};
+        const now = new Date().toISOString();
+        
+        // 보존할 이전 데이터
+        const updateData = {
+            email: user.email,
+            lastLoginAt: now,
+            firstLoginAt: data.firstLoginAt || now
+        };
+        
+        userRef.update(updateData).catch(err => console.error('유저 트래킹 기록 실패:', err));
+    });
+}
+
+function checkAndShowNotice() {
+    if (!firebaseDb) return;
+
+    const noticeRef = firebaseDb.ref('notices/current');
+    noticeRef.once('value').then(snap => {
+        const notice = snap.val();
+        if (!notice) return;
+
+        const today = new Date();
+        // 한국 시간에 맞게 오늘 날짜 (YYYY-MM-DD) 구성
+        const kstOffset = 9 * 60 * 60 * 1000;
+        const d = new Date(today.getTime() + kstOffset);
+        const todayStr = `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;
+
+        if (todayStr >= notice.startDate && todayStr <= notice.endDate) {
+            // Check if user chose "Do not show again"
+            const hiddenNoticeId = localStorage.getItem('hide_notice_id');
+            if (hiddenNoticeId !== notice.id) {
+                // Show modal
+                document.getElementById('notice-modal-message').textContent = notice.message;
+                
+                // Keep the ID reference for when they close it
+                document.getElementById('notice-modal').dataset.noticeId = notice.id;
+                
+                openModal('notice-modal');
+            }
+        }
+    }).catch(err => console.error('공지사항 확인 실패:', err));
+}
+
+function closeNoticeModal() {
+    const modal = document.getElementById('notice-modal');
+    const neverShowCheckbox = document.getElementById('notice-never-show');
+    
+    if (neverShowCheckbox && neverShowCheckbox.checked) {
+        const noticeId = modal.dataset.noticeId;
+        if (noticeId) {
+            localStorage.setItem('hide_notice_id', noticeId);
+        }
+    }
+    closeModal('notice-modal');
+}
