@@ -776,7 +776,7 @@ body {
 }
 
 .task-card.type-shortform::before {
-    background: var(--accent-secondary);
+    background: #2B6CB0;
 }
 
 /* 썸네일 - 골드 */
@@ -785,7 +785,7 @@ body {
 }
 
 .task-card.type-thumbnail::before {
-    background: var(--accent-warning);
+    background: #C8981E;
 }
 
 /* 기타 - 회색 */
@@ -794,7 +794,7 @@ body {
 }
 
 .task-card.type-other::before {
-    background: var(--text-muted);
+    background: #888888;
 }
 
 /* 완료 상태일 때 성공 색상으로 통일 */
@@ -859,8 +859,8 @@ body {
 }
 
 .task-badge.type-shortform {
-    background: rgba(100, 27, 46, 0.1);
-    color: var(--accent-secondary);
+    background: rgba(43, 108, 176, 0.1);
+    color: #2B6CB0;
 }
 
 .task-badge.type-thumbnail {
