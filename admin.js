@@ -30,6 +30,14 @@ const deleteNoticeBtn = document.getElementById('delete-notice-btn');
 const currentNoticePreview = document.getElementById('current-notice-preview');
 const noticeStartTodayChk = document.getElementById('notice-start-today');
 const noticeStartDateInput = document.getElementById('notice-start-date');
+const userSearchInput = document.getElementById('user-search-input');
+const userSortSelect = document.getElementById('user-sort-select');
+const userPagination = document.getElementById('user-pagination');
+
+// Data State
+let allUsers = [];
+let currentPage = 1;
+const itemsPerPage = 20;
 
 // Initialize
 function init() {
@@ -74,6 +82,17 @@ function init() {
         }
     });
 
+    // Search & Sort Event Listeners
+    userSearchInput.addEventListener('input', () => {
+        currentPage = 1;
+        renderUsers();
+    });
+
+    userSortSelect.addEventListener('change', () => {
+        currentPage = 1;
+        renderUsers();
+    });
+
     noticeStartTodayChk.addEventListener('change', (e) => {
         if (e.target.checked) {
             const today = new Date();
@@ -112,39 +131,134 @@ function denyAccess() {
 function fetchUsers() {
     const usersRef = firebaseDb.ref('app_users');
     usersRef.on('value', (snapshot) => {
-        userListBody.innerHTML = '';
         const users = snapshot.val();
-        
         if (!users) {
-            totalUsersBadge.textContent = '총 0명';
-            userListBody.innerHTML = '<tr><td colspan="3" style="text-align:center;">가입자가 없습니다.</td></tr>';
+            allUsers = [];
+            renderUsers();
             return;
         }
-
-        const userArray = Object.keys(users).map(uid => ({
+        allUsers = Object.keys(users).map(uid => ({
             uid,
             ...users[uid]
         }));
-
-        // Sort by lastLoginAt (descending)
-        userArray.sort((a, b) => {
-            const timeA = a.lastLoginAt ? new Date(a.lastLoginAt).getTime() : 0;
-            const timeB = b.lastLoginAt ? new Date(b.lastLoginAt).getTime() : 0;
-            return timeB - timeA;
-        });
-
-        totalUsersBadge.textContent = `총 ${userArray.length}명`;
-
-        userArray.forEach(u => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${escapeHtml(u.email || '이메일 없음')}</td>
-                <td>${u.firstLoginAt ? formatDate(u.firstLoginAt) : '-'}</td>
-                <td>${u.lastLoginAt ? formatDateTime(u.lastLoginAt) : '-'}</td>
-            `;
-            userListBody.appendChild(tr);
-        });
+        renderUsers();
     });
+}
+
+function renderUsers() {
+    const searchTerm = userSearchInput.value.trim().toLowerCase();
+    const sortValue = userSortSelect.value;
+
+    // 1. Filter
+    let filteredUsers = allUsers.filter(u => {
+        return (u.email || '').toLowerCase().includes(searchTerm);
+    });
+
+    totalUsersBadge.textContent = `총 ${filteredUsers.length}명`;
+
+    if (filteredUsers.length === 0) {
+        userListBody.innerHTML = '<tr><td colspan="3" style="text-align:center;">검색 결과가 없습니다.</td></tr>';
+        userPagination.innerHTML = '';
+        return;
+    }
+
+    // 2. Sort
+    filteredUsers.sort((a, b) => {
+        const getTime = (iso) => iso ? new Date(iso).getTime() : 0;
+        
+        switch (sortValue) {
+            case 'lastLoginDesc':
+                return getTime(b.lastLoginAt) - getTime(a.lastLoginAt);
+            case 'lastLoginAsc':
+                return getTime(a.lastLoginAt) - getTime(b.lastLoginAt);
+            case 'firstLoginDesc':
+                return getTime(b.firstLoginAt) - getTime(a.firstLoginAt);
+            case 'firstLoginAsc':
+                return getTime(a.firstLoginAt) - getTime(b.firstLoginAt);
+            case 'emailAsc':
+                const emailA = (a.email || '').toLowerCase();
+                const emailB = (b.email || '').toLowerCase();
+                if (emailA < emailB) return -1;
+                if (emailA > emailB) return 1;
+                return 0;
+            default:
+                return 0;
+        }
+    });
+
+    // 3. Paginate
+    const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const paginatedUsers = filteredUsers.slice(startIndex, startIndex + itemsPerPage);
+
+    // 4. Render Table
+    userListBody.innerHTML = '';
+    paginatedUsers.forEach(u => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${escapeHtml(u.email || '이메일 없음')}</td>
+            <td>${u.firstLoginAt ? formatDate(u.firstLoginAt) : '-'}</td>
+            <td>${u.lastLoginAt ? formatDateTime(u.lastLoginAt) : '-'}</td>
+        `;
+        userListBody.appendChild(tr);
+    });
+
+    // 5. Render Pagination
+    renderPagination(totalPages);
+}
+
+function renderPagination(totalPages) {
+    userPagination.innerHTML = '';
+    
+    if (totalPages <= 1) return;
+
+    // Prev Button
+    const prevBtn = document.createElement('button');
+    prevBtn.className = 'page-btn';
+    prevBtn.textContent = '◀';
+    prevBtn.disabled = currentPage === 1;
+    prevBtn.addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            renderUsers();
+        }
+    });
+    userPagination.appendChild(prevBtn);
+
+    // Page Numbers (showing a window of 5 pages)
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, startPage + 4);
+    
+    if (endPage - startPage < 4) {
+        startPage = Math.max(1, endPage - 4);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        const pageBtn = document.createElement('button');
+        pageBtn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+        pageBtn.textContent = i;
+        pageBtn.addEventListener('click', () => {
+            currentPage = i;
+            renderUsers();
+        });
+        userPagination.appendChild(pageBtn);
+    }
+
+    // Next Button
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'page-btn';
+    nextBtn.textContent = '▶';
+    nextBtn.disabled = currentPage === totalPages;
+    nextBtn.addEventListener('click', () => {
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderUsers();
+        }
+    });
+    userPagination.appendChild(nextBtn);
 }
 
 // Fetch Notice

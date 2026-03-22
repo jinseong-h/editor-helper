@@ -47,6 +47,23 @@
                         <h2>👥 가입자 리스트</h2>
                         <span class="badge" id="total-users-badge">총 0명</span>
                     </div>
+                    
+                    <!-- 검색 및 정렬 설정 -->
+                    <div class="list-controls">
+                        <div class="search-box">
+                            <input type="text" id="user-search-input" placeholder="이메일 검색...">
+                        </div>
+                        <div class="sort-box">
+                            <select id="user-sort-select">
+                                <option value="lastLoginDesc">최근 로그인 (최신순)</option>
+                                <option value="lastLoginAsc">최근 로그인 (오래된순)</option>
+                                <option value="firstLoginDesc">최초 로그인 (최신순)</option>
+                                <option value="firstLoginAsc">최초 로그인 (오래된순)</option>
+                                <option value="emailAsc">이메일 (A-Z)</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <div class="table-container">
                         <table class="data-table">
                             <thead>
@@ -60,6 +77,11 @@
                                 <!-- Users dynamically loaded here -->
                             </tbody>
                         </table>
+                    </div>
+                    
+                    <!-- 페이지네이션 -->
+                    <div class="pagination" id="user-pagination">
+                        <!-- Pagination buttons loaded here -->
                     </div>
                 </section>
 
