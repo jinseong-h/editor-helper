@@ -1987,9 +1987,13 @@ function initFirebase() {
             firebase.auth().onAuthStateChanged((user) => {
                 if (user) {
                     console.log('✅ Google 로그인 성공:', user.email);
+                    // 로그인 게이트 숨기고 앱 보이기
+                    showApp();
                     connectToGoogleSync(user);
                 } else {
                     console.log('🔌 로그아웃 상태');
+                    // 로그인 게이트 보이고 앱 숨기기
+                    showLoginGate();
                     disconnectSync();
                 }
             });
@@ -2001,47 +2005,44 @@ function initFirebase() {
     }
 }
 
+// 로그인 게이트 표시
+function showLoginGate() {
+    const gate = document.getElementById('login-gate');
+    const app = document.getElementById('app-container');
+    if (gate) gate.style.display = 'flex';
+    if (app) app.style.display = 'none';
+}
+
+// 앱 표시
+function showApp() {
+    const gate = document.getElementById('login-gate');
+    const app = document.getElementById('app-container');
+    if (gate) gate.style.display = 'none';
+    if (app) app.style.display = 'block';
+}
+
 // 클라우드 동기화 UI 초기화
 function initCloudSync() {
-    // 동기화 버튼 (설정 탭)
+    // 설정 탭 동기화 버튼
     document.getElementById('cloud-sync-btn')?.addEventListener('click', () => {
         updateSyncModalView();
         openModal('sync-modal');
     });
 
-    // 상단 탭바 동기화/로그인 버튼
-    document.getElementById('top-cloud-sync-btn')?.addEventListener('click', () => {
-        const user = firebaseApp ? firebase.auth().currentUser : null;
-        if (!user) {
-            // 미로그인 시 바로 로그인 실행
-            document.getElementById('google-login-btn')?.click();
-        }
-    });
-
-    // 상단 탭바 클라우드 설정 버튼
-    document.getElementById('top-cloud-settings-btn')?.addEventListener('click', () => {
+    // 상단 탭바 프로필 버튼 클릭 → 동기화 모달 열기
+    document.getElementById('nav-profile-btn')?.addEventListener('click', () => {
         updateSyncModalView();
         openModal('sync-modal');
     });
 
-    // Google 로그인
-    document.getElementById('google-login-btn')?.addEventListener('click', () => {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        firebase.auth().signInWithPopup(provider).catch((error) => {
-            console.error('Google 로그인 실패:', error);
-            showToast('로그인에 실패했습니다.', 'error');
+    // 로그인 게이트 버튼
+    document.getElementById('login-gate-btn')?.addEventListener('click', () => {
+        loginWithGoogle();
+    });
 
-            // 자세한 에러 원인을 알림으로 표시 (디버깅용)
-            if (error.code === 'auth/operation-not-allowed') {
-                alert('Firebase 콘솔에서 Google 로그인 제공업체가 활성화되지 않았습니다. 설정 가이드를 다시 확인해주세요.');
-            } else if (error.code === 'auth/unauthorized-domain') {
-                alert('승인되지 않은 도메인입니다. Firebase 콘솔의 Authentication -> Settings -> 승인된 도메인에 현재 접속 중인 주소(예: 127.0.0.1, localhost 등)를 추가해주세요.');
-            } else if (window.location.protocol === 'file:') {
-                alert('로컬 파일(file://) 환경에서는 Google 로그인이 제한될 수 있습니다. VS Code의 Live Server 등을 이용해 로컬 서버(http://...) 환경에서 실행해주세요.');
-            } else {
-                alert('로그인 에러: ' + error.message);
-            }
-        });
+    // Google 로그인 (모달 내 버튼)
+    document.getElementById('google-login-btn')?.addEventListener('click', () => {
+        loginWithGoogle();
     });
 
     // 수동 동기화
@@ -2057,15 +2058,32 @@ function initCloudSync() {
 
     // 로그아웃
     document.getElementById('sync-logout-btn')?.addEventListener('click', () => {
-        if (confirm('로그아웃하시겠습니까?\n로그아웃해도 현재 기기의 로컬 데이터는 유지됩니다.')) {
+        if (confirm('로그아웃하시겠습니까?\n로그아웃하면 로그인 화면으로 돌아갑니다.')) {
             firebase.auth().signOut().then(() => {
-                // 로그아웃 시 동기화 타임스탬프 초기화
-                // (재로그인 시 오래된 타임스탬프가 남아 클라우드 데이터를 덮어쓰는 버그 방지)
                 localStorage.removeItem('editor_app_updated_at');
                 showToast('로그아웃 되었습니다.', 'success');
             }).catch((error) => {
                 console.error('로그아웃 실패:', error);
             });
+        }
+    });
+}
+
+// Google 로그인 공통 함수
+function loginWithGoogle() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    firebase.auth().signInWithPopup(provider).catch((error) => {
+        console.error('Google 로그인 실패:', error);
+        showToast('로그인에 실패했습니다.', 'error');
+
+        if (error.code === 'auth/operation-not-allowed') {
+            alert('Firebase 콘솔에서 Google 로그인 제공업체가 활성화되지 않았습니다.');
+        } else if (error.code === 'auth/unauthorized-domain') {
+            alert('승인되지 않은 도메인입니다. Firebase 콘솔의 Authentication -> Settings -> 승인된 도메인에 현재 접속 중인 주소를 추가해주세요.');
+        } else if (window.location.protocol === 'file:') {
+            alert('로컬 파일(file://) 환경에서는 Google 로그인이 제한될 수 있습니다.');
+        } else {
+            alert('로그인 에러: ' + error.message);
         }
     });
 }
@@ -2230,26 +2248,31 @@ function disconnectSync() {
     closeModal('sync-modal');
 }
 
-// 동기화 상태 업데이트
+// 동기화 상태 업데이트 (프로필 버튼)
 function updateSyncStatus(connected) {
     const badge = document.getElementById('sync-status-badge');
     if (badge) {
         badge.style.display = connected ? 'flex' : 'none';
     }
 
-    // 상단 탭바 상태 업데이트
-    const topBadge = document.getElementById('top-sync-status');
-    const topLoginBtn = document.getElementById('top-cloud-sync-btn');
-    const topSettingsBtn = document.getElementById('top-cloud-settings-btn');
-    
-    if (connected) {
-        if (topBadge) topBadge.style.display = 'flex';
-        if (topLoginBtn) topLoginBtn.style.display = 'none';
-        if (topSettingsBtn) topSettingsBtn.style.display = 'flex';
+    // 프로필 버튼 업데이트
+    const profileImg = document.getElementById('nav-profile-img');
+    const profileIcon = document.getElementById('nav-profile-icon');
+    const user = firebaseApp ? firebase.auth().currentUser : null;
+
+    if (connected && user) {
+        // 프로필 사진이 있으면 표시
+        if (user.photoURL && profileImg) {
+            profileImg.src = user.photoURL;
+            profileImg.style.display = 'block';
+            if (profileIcon) profileIcon.style.display = 'none';
+        }
     } else {
-        if (topBadge) topBadge.style.display = 'none';
-        if (topLoginBtn) topLoginBtn.style.display = 'flex';
-        if (topSettingsBtn) topSettingsBtn.style.display = 'none';
+        if (profileImg) {
+            profileImg.style.display = 'none';
+            profileImg.src = '';
+        }
+        if (profileIcon) profileIcon.style.display = 'block';
     }
 }
 
