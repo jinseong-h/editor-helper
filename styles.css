@@ -2360,22 +2360,12 @@ form {
     width: 100%;
 }
 
-.login-gate-icon {
-    font-size: 4rem;
-    margin-bottom: var(--space-lg);
-    animation: float 3s ease-in-out infinite;
+.login-gate-logo {
+    margin-bottom: var(--space-xl);
 }
 
-@keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-}
-
-.login-gate-title {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: var(--space-sm);
+.login-gate-logo .brand-logo {
+    height: 80px;
 }
 
 .login-gate-desc {
