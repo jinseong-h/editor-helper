@@ -1022,7 +1022,7 @@ body {
 }
 
 .rate-input {
-    width: 80px;
+    width: 110px;
     padding: var(--space-xs) var(--space-sm);
     background: var(--bg-tertiary);
     border: 1px solid var(--border-color);

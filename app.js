@@ -371,9 +371,11 @@ function initTaskManagement() {
     document.getElementById('task-video-minutes')?.addEventListener('input', updateRateHint);
     document.getElementById('task-video-seconds')?.addEventListener('input', updateRateHint);
 
-    // 수동으로 단가를 입력하면 자동 계산 플래그 해제
+    // 수동으로 단가를 입력하면 자동 계산 플래그 해제 및 콤마 포맷팅
     document.getElementById('task-rate')?.addEventListener('input', (e) => {
         e.target.removeAttribute('data-auto-calculated');
+        let val = e.target.value.replace(/[^0-9]/g, '');
+        e.target.value = val ? parseInt(val, 10).toLocaleString() : '';
     });
 
     // 필터링
@@ -443,7 +445,7 @@ function updateRateHint() {
 
     // 기존 값이 없거나, 이전에 자동 입력된 값이라면 덮어쓰기
     if ((!rateInput.value || rateInput.dataset.autoCalculated === 'true') && rate > 0) {
-        rateInput.value = rate;
+        rateInput.value = rate.toLocaleString();
         rateInput.dataset.autoCalculated = 'true';
     } else if (!rateInput.value) {
         rateInput.removeAttribute('data-auto-calculated');
@@ -458,7 +460,7 @@ function saveTask() {
     const dueDate = document.getElementById('task-due-date').value;
     const videoMinutes = parseInt(document.getElementById('task-video-minutes').value) || 0;
     const videoSeconds = parseInt(document.getElementById('task-video-seconds').value) || 0;
-    const rate = parseInt(document.getElementById('task-rate').value) || 0;
+    const rate = parseInt(document.getElementById('task-rate').value.replace(/,/g, '')) || 0;
 
     if (!name || !channelId) {
         showToast('작업명과 고객을 입력해주세요.', 'warning');
@@ -517,7 +519,7 @@ function editTask(id) {
     document.getElementById('task-due-date').value = task.dueDate || '';
     document.getElementById('task-video-minutes').value = task.videoMinutes || '0';
     document.getElementById('task-video-seconds').value = task.videoSeconds || '0';
-    document.getElementById('task-rate').value = task.rate || '';
+    document.getElementById('task-rate').value = task.rate ? task.rate.toLocaleString() : '';
 
     // 기존 작업을 수정하는 경우 수동 입력된 값으로 간주하여 자동 계산 덮어쓰기 방지
     document.getElementById('task-rate').removeAttribute('data-auto-calculated');
@@ -703,8 +705,9 @@ function createTaskHTML(task) {
                         <div class="task-stat-inline">
                             <span class="task-stat-label">단가</span>
                             <span class="task-stat-value rate-editable">
-                                <input type="number" class="rate-input" value="${task.rate || 0}" 
-                                    onchange="updateTaskRate('${task.id}', this.value)"
+                                <input type="text" class="rate-input" value="${(task.rate || 0).toLocaleString()}" 
+                                    oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/\\B(?=(\\d{3})+(?!\\d))/g, ',')"
+                                    onchange="updateTaskRate('${task.id}', this.value.replace(/,/g, ''))"
                                     ${task.isRateLocked ? '' : 'disabled'}>
                                 <span class="rate-display ${task.isRateLocked ? 'hidden' : ''}">${formatCurrency(task.rate)}</span>
                                 <button class="rate-lock-btn ${task.isRateLocked ? 'locked' : ''}" 
