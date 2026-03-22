@@ -220,7 +220,7 @@ function initChannelManagement() {
 
     addBtn?.addEventListener('click', () => {
         resetChannelForm();
-        document.getElementById('channel-modal-title').textContent = '채널 추가';
+        document.getElementById('channel-modal-title').textContent = '고객 추가';
         openModal('channel-modal');
     });
 
@@ -250,7 +250,7 @@ function saveChannel() {
     const memo = document.getElementById('channel-memo').value.trim();
 
     if (!name) {
-        showToast('채널명을 입력해주세요.', 'warning');
+        showToast('고객명을 입력해주세요.', 'warning');
         return;
     }
 
@@ -270,11 +270,11 @@ function saveChannel() {
         if (index !== -1) {
             channels[index] = channelData;
         }
-        showToast('채널이 수정되었습니다.', 'success');
+        showToast('고객이 수정되었습니다.', 'success');
     } else {
         // 추가
         channels.push(channelData);
-        showToast('채널이 추가되었습니다.', 'success');
+        showToast('고객이 추가되었습니다.', 'success');
     }
 
     saveData();
@@ -297,18 +297,18 @@ function editChannel(id) {
     const radioBtn = document.querySelector(`input[name="longform-type"][value="${channel.longformType}"]`);
     if (radioBtn) radioBtn.checked = true;
 
-    document.getElementById('channel-modal-title').textContent = '채널 수정';
+    document.getElementById('channel-modal-title').textContent = '고객 수정';
     openModal('channel-modal');
 }
 
 function deleteChannel(id) {
-    if (!confirm('정말 이 채널을 삭제하시겠습니까?\n해당 채널의 작업들은 유지됩니다.')) return;
+    if (!confirm('정말 이 고객을 삭제하시겠습니까?\n해당 고객의 작업들은 유지됩니다.')) return;
 
     channels = channels.filter(c => c.id !== id);
     saveData();
     renderChannels();
     updateChannelSelects();
-    showToast('채널이 삭제되었습니다.', 'success');
+    showToast('고객이 삭제되었습니다.', 'success');
 }
 
 function renderChannels() {
@@ -352,7 +352,7 @@ function initTaskManagement() {
 
     addBtn?.addEventListener('click', () => {
         if (channels.length === 0) {
-            showToast('먼저 설정에서 채널을 추가해주세요.', 'warning');
+            showToast('먼저 설정에서 고객을 추가해주세요.', 'warning');
             return;
         }
         resetTaskForm();
@@ -365,7 +365,7 @@ function initTaskManagement() {
         saveTask();
     });
 
-    // 채널/타입 변경 시 단가 자동 계산
+    // 고객/타입 변경 시 단가 자동 계산
     document.getElementById('task-channel')?.addEventListener('change', updateRateHint);
     document.getElementById('task-type')?.addEventListener('change', updateRateHint);
     document.getElementById('task-video-minutes')?.addEventListener('input', updateRateHint);
@@ -461,7 +461,7 @@ function saveTask() {
     const rate = parseInt(document.getElementById('task-rate').value) || 0;
 
     if (!name || !channelId) {
-        showToast('작업명과 채널을 입력해주세요.', 'warning');
+        showToast('작업명과 고객을 입력해주세요.', 'warning');
         return;
     }
 
@@ -572,8 +572,8 @@ function updateChannelSelects() {
         const isFilterSelect = select.id !== 'task-channel';
 
         select.innerHTML = isFilterSelect
-            ? '<option value="">모든 채널</option>'
-            : '<option value="">채널 선택</option>';
+            ? '<option value="">모든 고객</option>'
+            : '<option value="">고객 선택</option>';
 
         channels.forEach(channel => {
             const option = document.createElement('option');
@@ -601,7 +601,7 @@ function getFilteredTasks() {
         filtered = filtered.filter(t => !t.isCompleted);
     }
 
-    // 채널 필터
+    // 고객 필터
     if (filterChannel) {
         filtered = filtered.filter(t => t.channelId === filterChannel);
     }
@@ -641,7 +641,7 @@ function getFilteredTasks() {
 
 function createTaskHTML(task) {
     const channel = channels.find(c => c.id === task.channelId);
-    const channelName = channel ? channel.name : '(삭제된 채널)';
+    const channelName = channel ? channel.name : '(삭제된 고객)';
     const typeLabels = {
         longform: '롱폼',
         shortform: '숏폼',
@@ -1053,7 +1053,7 @@ function updateSummary() {
         });
     }
 
-    // 채널 필터
+    // 고객 필터
     if (channelId) {
         filteredTasks = filteredTasks.filter(t => t.channelId === channelId);
     }
@@ -1071,7 +1071,7 @@ function updateSummary() {
     document.getElementById('total-time').textContent = formatDuration(totalSeconds);
     document.getElementById('avg-hourly').textContent = formatCurrency(avgHourly);
 
-    // 채널별 시급 차트 업데이트
+    // 고객별 시급 차트 업데이트
     updateHourlyChart(filteredTasks);
 
     // 기간 옵션 업데이트 (선택값 유지)
@@ -1082,7 +1082,7 @@ function updateHourlyChart(filteredTasks) {
     const container = document.getElementById('hourly-chart');
     if (!container) return;
 
-    // 채널별 통계 계산
+    // 고객별 통계 계산
     const channelStats = {};
 
     filteredTasks.forEach(task => {
@@ -1104,7 +1104,7 @@ function updateHourlyChart(filteredTasks) {
                 ? Math.floor(stats.totalRate / (stats.totalSeconds / 3600))
                 : 0;
             return {
-                name: channel ? channel.name : '(삭제된 채널)',
+                name: channel ? channel.name : '(삭제된 고객)',
                 hourlyRate
             };
         })
@@ -1139,7 +1139,7 @@ let invoiceStartDate = null;
 let invoiceEndDate = null;
 
 function initInvoicePage() {
-    // 채널 선택 드롭다운에 채널 추가
+    // 고객 선택 드롭다운에 고객 추가
     updateInvoiceChannelSelect();
 
     // 월 선택 버튼 생성
@@ -1174,7 +1174,7 @@ function initInvoicePage() {
         updateInvoicePreview();
     });
 
-    // 채널 선택 이벤트
+    // 고객 선택 이벤트
     document.getElementById('invoice-channel')?.addEventListener('change', updateInvoicePreview);
 
     // 입금 정보 저장/불러오기
@@ -1190,7 +1190,7 @@ function updateInvoiceChannelSelect() {
     if (!select) return;
 
     const currentValue = select.value;
-    select.innerHTML = '<option value="">채널 선택</option>';
+    select.innerHTML = '<option value="">고객 선택</option>';
 
     channels.forEach(channel => {
         const option = document.createElement('option');
@@ -1274,7 +1274,7 @@ function updateInvoicePreview() {
     const channel = channels.find(c => c.id === channelId);
 
     if (!channelId) {
-        container.innerHTML = '<p class="preview-placeholder">채널을 선택해주세요.</p>';
+        container.innerHTML = '<p class="preview-placeholder">고객을 선택해주세요.</p>';
         return;
     }
 
@@ -1318,7 +1318,7 @@ function updateInvoicePreview() {
             <h2>작업내역서</h2>
             <div class="invoice-info">
                 <div class="invoice-info-item">
-                    <span class="invoice-info-label">채널:</span>
+                    <span class="invoice-info-label">고객:</span>
                     <span>${escapeHtml(channel.name)}</span>
                 </div>
                 <div class="invoice-info-item">
@@ -1424,7 +1424,7 @@ function generateInvoicePDF() {
     const channel = channels.find(c => c.id === channelId);
 
     if (!channelId || !channel) {
-        showToast('채널을 선택해주세요.', 'warning');
+        showToast('고객을 선택해주세요.', 'warning');
         return;
     }
 
@@ -1556,7 +1556,7 @@ function generateInvoicePDF() {
             <h1>작업내역서</h1>
             <div class="info-section">
                 <div class="info-item">
-                    <span class="info-label">채널:</span>
+                    <span class="info-label">고객:</span>
                     <span>${escapeHtml(channel.name)}</span>
                 </div>
                 <div class="info-item">
@@ -1707,13 +1707,13 @@ function importData(mode) {
                 id: generateId()
             }));
 
-            // 채널 ID 매핑
+            // 고객 ID 매핑
             const channelIdMap = {};
             pendingImportData.channels?.forEach((oldChannel, index) => {
                 channelIdMap[oldChannel.id] = newChannels[index].id;
             });
 
-            // 작업의 채널 ID도 업데이트
+            // 작업의 고객 ID도 업데이트
             const newTasks = (pendingImportData.tasks || []).map(t => ({
                 ...t,
                 id: generateId(),
@@ -1957,6 +1957,18 @@ function calculateHourlyRate(rate, elapsedSeconds) {
 // Firebase Cloud Sync
 // ===================================
 
+// 글로벌 상태 변수
+let currentDate = new Date();
+let currentView = 'day'; // 'day', 'week', 'month'
+let selectedTasks = new Set();
+let isCloudSyncing = false;
+let isSyncConnecting = false;
+let isApplyingCloudData = false;
+let syncListener = null;
+let syncListenerRef = null;
+let pendingOfflineData = false;
+let currentEditingTaskId = null; // 수정 중인 작업 ID 저장
+
 // Firebase 설정 - 사용자 Firebase 프로젝트
 const FIREBASE_CONFIG = {
     apiKey: "AIzaSyCCT2GfTaQGvinrOOv6kUpVbewFzIt_hjw",
@@ -1970,10 +1982,6 @@ const FIREBASE_CONFIG = {
 
 let firebaseApp = null;
 let firebaseDb = null;
-let syncListener = null;
-
-let isApplyingCloudData = false; // 클라우드 데이터 적용 중 플래그 (무한 루프 방지)
-let isSyncConnecting = false; // 로그인/동기화 연결 중 보호 플래그
 
 // Firebase 초기화
 function initFirebase() {
@@ -2096,10 +2104,11 @@ async function connectToGoogleSync(user) {
     showLoading('데이터 동기화 중...');
 
     try {
-        // 기존 리스너 해제
-        if (syncListener) {
-            syncListener();
+        // 기존 리스너 해제 (이전 계정의 리스너가 남아있는 경우를 대비)
+        if (syncListener && syncListenerRef) {
+            syncListenerRef.off('value', syncListener);
             syncListener = null;
+            syncListenerRef = null;
         }
 
         // 클라우드에서 데이터 확인 (users/uid 경로 사용)
@@ -2219,6 +2228,7 @@ function setupSyncListener() {
     }
 
     const ref = firebaseDb.ref(`users/${user.uid}`);
+    syncListenerRef = ref;
 
     syncListener = ref.on('value', (snapshot) => {
         const cloudData = snapshot.val();
@@ -2238,9 +2248,10 @@ function setupSyncListener() {
 function disconnectSync() {
     const user = firebaseApp ? firebase.auth().currentUser : null;
 
-    if (syncListener && user && firebaseDb) {
-        firebaseDb.ref(`users/${user.uid}`).off('value', syncListener);
+    if (syncListener && syncListenerRef) {
+        syncListenerRef.off('value', syncListener);
         syncListener = null;
+        syncListenerRef = null;
     }
 
     updateSyncStatus(false);

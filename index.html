@@ -109,7 +109,7 @@
                     </div>
                     <div class="filter-group">
                         <select id="filter-channel" class="select-input">
-                            <option value="">모든 채널</option>
+                            <option value="">모든 고객</option>
                         </select>
                     </div>
                     <div class="filter-group">
@@ -165,9 +165,9 @@
                         </select>
                     </div>
                     <div class="filter-group">
-                        <label>채널</label>
+                        <label>고객</label>
                         <select id="summary-channel" class="select-input">
-                            <option value="">모든 채널</option>
+                            <option value="">모든 고객</option>
                         </select>
                     </div>
                 </div>
@@ -196,7 +196,7 @@
                 </div>
 
                 <div class="chart-section">
-                    <h2>채널별 평균 시급 비교</h2>
+                    <h2>고객별 평균 시급 비교</h2>
                     <div class="chart-container" id="hourly-chart">
                         <!-- 차트가 여기에 동적으로 그려짐 -->
                     </div>
@@ -255,11 +255,11 @@
                 </div>
 
                 <div class="invoice-container">
-                    <!-- 채널 선택 -->
+                    <!-- 고객 선택 -->
                     <div class="invoice-section">
-                        <h3>1. 채널 선택</h3>
+                        <h3>1. 고객 선택</h3>
                         <select id="invoice-channel" class="select-input">
-                            <option value="">채널 선택</option>
+                            <option value="">고객 선택</option>
                         </select>
                     </div>
 
@@ -328,7 +328,7 @@
                     <div class="invoice-section">
                         <h3>4. 작업내역서 미리보기</h3>
                         <div class="invoice-preview" id="invoice-preview">
-                            <p class="preview-placeholder">채널과 기간을 선택하면 미리보기가 표시됩니다.</p>
+                            <p class="preview-placeholder">고객과 기간을 선택하면 미리보기가 표시됩니다.</p>
                         </div>
                         <div class="invoice-actions">
                             <button class="btn btn-primary btn-lg" id="generate-pdf-btn">
@@ -347,20 +347,20 @@
 
                 <div class="settings-section">
                     <div class="section-header">
-                        <h2>채널 관리</h2>
+                        <h2>고객 관리</h2>
                         <button class="btn btn-primary" id="add-channel-btn">
-                            <span>+</span> 채널 추가
+                            <span>+</span> 고객 추가
                         </button>
                     </div>
 
                     <div class="channels-list" id="channels-list">
-                        <!-- 채널 카드들이 여기에 동적으로 추가됨 -->
+                        <!-- 고객 카드들이 여기에 동적으로 추가됨 -->
                     </div>
 
                     <div class="empty-state" id="empty-channels" style="display: none;">
                         <div class="empty-icon">📺</div>
-                        <p>등록된 채널이 없습니다</p>
-                        <p class="empty-hint">채널을 추가해 작업을 관리해 보세요!</p>
+                        <p>등록된 고객이 없습니다</p>
+                        <p class="empty-hint">고객을 추가해 작업을 관리해 보세요!</p>
                     </div>
                 </div>
 
@@ -412,9 +412,9 @@
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="task-channel">채널 *</label>
+                        <label for="task-channel">고객 *</label>
                         <select id="task-channel" required>
-                            <option value="">채널 선택</option>
+                            <option value="">고객 선택</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -455,19 +455,19 @@
         </div>
     </div>
 
-    <!-- 채널 추가/수정 모달 -->
+    <!-- 고객 추가/수정 모달 -->
     <div class="modal" id="channel-modal">
         <div class="modal-backdrop"></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="channel-modal-title">채널 추가</h2>
+                <h2 id="channel-modal-title">고객 추가</h2>
                 <button class="modal-close" id="channel-modal-close">&times;</button>
             </div>
             <form id="channel-form">
                 <input type="hidden" id="channel-id">
                 <div class="form-group">
-                    <label for="channel-name">채널명 *</label>
-                    <input type="text" id="channel-name" required placeholder="유튜브 채널 이름">
+                    <label for="channel-name">고객명 *</label>
+                    <input type="text" id="channel-name" required placeholder="유튜브 고객 이름">
                 </div>
                 <div class="form-group">
                     <label>롱폼 단가</label>
@@ -493,7 +493,7 @@
                 </div>
                 <div class="form-group">
                     <label for="channel-memo">메모</label>
-                    <textarea id="channel-memo" rows="3" placeholder="채널에 대한 메모"></textarea>
+                    <textarea id="channel-memo" rows="3" placeholder="고객에 대한 메모"></textarea>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" id="channel-cancel-btn">취소</button>
@@ -650,7 +650,7 @@
                     <div class="guide-steps">
                         <div class="guide-step">
                             <span class="step-num">1</span>
-                            <span><strong>설정 → 채널 추가</strong>에서 작업할 유튜브 채널과 단가를 등록하세요.</span>
+                            <span><strong>설정 → 고객 추가</strong>에서 작업할 유튜브 고객과 단가를 등록하세요.</span>
                         </div>
                         <div class="guide-step">
                             <span class="step-num">2</span>
@@ -666,12 +666,12 @@
                 <div class="guide-section">
                     <h3>📋 작업 목록</h3>
                     <ul class="guide-list">
-                        <li><strong>새 작업 추가</strong> — 채널, 작업 종류(롱폼/숏폼/썸네일/기타), 완료 예상일, 영상 길이, 단가를 입력합니다. 단가는 채널 설정 기반으로
+                        <li><strong>새 작업 추가</strong> — 고객, 작업 종류(롱폼/숏폼/썸네일/기타), 완료 예상일, 영상 길이, 단가를 입력합니다. 단가는 고객 설정 기반으로
                             자동 계산됩니다.</li>
-                        <li><strong>필터링</strong> — 상단 필터바에서 미완료만 보기, 채널별, 종류별, 정렬 순서를 변경할 수 있습니다.</li>
+                        <li><strong>필터링</strong> — 상단 필터바에서 미완료만 보기, 고객별, 종류별, 정렬 순서를 변경할 수 있습니다.</li>
                         <li><strong>스톱워치</strong> — ▶ 버튼으로 작업 시간 측정을 시작하고, ⏸ 버튼으로 일시정지합니다. ↺ 버튼으로 초기화할 수 있습니다.</li>
                         <li><strong>시간 직접 수정</strong> — 시간 표시(00:00:00)를 클릭하면 시간을 직접 입력할 수 있는 팝업이 나타납니다.</li>
-                        <li><strong>영상 길이 입력</strong> — 완성된 영상의 길이를 입력하면, 분당 단가 채널의 경우 단가가 자동 재계산됩니다.</li>
+                        <li><strong>영상 길이 입력</strong> — 완성된 영상의 길이를 입력하면, 분당 단가 고객의 경우 단가가 자동 재계산됩니다.</li>
                         <li><strong>단가 수정</strong> — ✏️ 아이콘을 눌러 수동 입력 모드로 전환하면 단가를 직접 수정할 수 있고, 🔒 아이콘을 누르면 자동 계산 모드로
                             돌아갑니다.</li>
                         <li><strong>작업 완료</strong> — 하단의 "작업 완료" 체크박스를 누르면 완료 처리됩니다. 완료된 작업은 시급이 자동 계산됩니다.</li>
@@ -683,8 +683,8 @@
                     <ul class="guide-list">
                         <li>완료된 작업 수, 총 수익, 총 작업 시간, 평균 시급을 한눈에 확인합니다.</li>
                         <li><strong>기간 필터</strong> — 월별 또는 전체 기간을 선택하여 특정 기간의 통계를 볼 수 있습니다.</li>
-                        <li><strong>채널 필터</strong> — 특정 채널만 선택하여 채널별 수익을 비교할 수 있습니다.</li>
-                        <li><strong>시급 차트</strong> — 채널별 평균 시급을 바 차트로 비교합니다.</li>
+                        <li><strong>고객 필터</strong> — 특정 고객만 선택하여 고객별 수익을 비교할 수 있습니다.</li>
+                        <li><strong>시급 차트</strong> — 고객별 평균 시급을 바 차트로 비교합니다.</li>
                     </ul>
                 </div>
 
@@ -701,8 +701,8 @@
                 <div class="guide-section">
                     <h3>📄 작업내역서</h3>
                     <ul class="guide-list">
-                        <li>채널별로 월간 작업내역서(인보이스)를 생성합니다.</li>
-                        <li><strong>채널 선택</strong> → <strong>기간 선택</strong>(월별 또는 세부 기간 직접 선택) → 미리보기 확인 → <strong>PDF
+                        <li>고객별로 월간 작업내역서(인보이스)를 생성합니다.</li>
+                        <li><strong>고객 선택</strong> → <strong>기간 선택</strong>(월별 또는 세부 기간 직접 선택) → 미리보기 확인 → <strong>PDF
                                 다운로드</strong></li>
                         <li><strong>입금 정보</strong> — 은행명, 계좌번호, 예금주를 입력하면 작업내역서 하단에 포함됩니다. 정보를 저장해두고 불러올 수 있습니다.</li>
                     </ul>
@@ -711,7 +711,7 @@
                 <div class="guide-section">
                     <h3>⚙️ 설정</h3>
                     <ul class="guide-list">
-                        <li><strong>채널 관리</strong> — 작업할 유튜브 채널을 등록하고, 롱폼(건당/분당), 숏폼, 썸네일 단가를 설정합니다. 메모도 추가 가능합니다.</li>
+                        <li><strong>고객 관리</strong> — 작업할 유튜브 고객을 등록하고, 롱폼(건당/분당), 숏폼, 썸네일 단가를 설정합니다. 메모도 추가 가능합니다.</li>
                         <li><strong>클라우드 동기화</strong> — 동기화 코드를 생성하거나 입력하여 여러 기기에서 같은 데이터를 사용할 수 있습니다. 데이터는 실시간으로 자동
                             동기화됩니다.</li>
                         <li><strong>데이터 관리</strong> — JSON 파일로 데이터를 내보내거나 불러올 수 있습니다. 불러올 때 덮어쓰기 또는 추가 방식을 선택할 수 있습니다.
