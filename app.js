@@ -1973,6 +1973,7 @@ let firebaseDb = null;
 let syncListener = null;
 
 let isApplyingCloudData = false; // 클라우드 데이터 적용 중 플래그 (무한 루프 방지)
+let isSyncConnecting = false; // 로그인/동기화 연결 중 보호 플래그
 
 // Firebase 초기화
 function initFirebase() {
@@ -2058,6 +2059,9 @@ function initCloudSync() {
     document.getElementById('sync-logout-btn')?.addEventListener('click', () => {
         if (confirm('로그아웃하시겠습니까?\n로그아웃해도 현재 기기의 로컬 데이터는 유지됩니다.')) {
             firebase.auth().signOut().then(() => {
+                // 로그아웃 시 동기화 타임스탬프 초기화
+                // (재로그인 시 오래된 타임스탬프가 남아 클라우드 데이터를 덮어쓰는 버그 방지)
+                localStorage.removeItem('editor_app_updated_at');
                 showToast('로그아웃 되었습니다.', 'success');
             }).catch((error) => {
                 console.error('로그아웃 실패:', error);
@@ -2070,6 +2074,7 @@ function initCloudSync() {
 async function connectToGoogleSync(user) {
     if (!firebaseDb || !user) return;
 
+    isSyncConnecting = true; // 동기화 연결 중 로컬→클라우드 자동 업로드 차단
     showLoading('데이터 동기화 중...');
 
     try {
@@ -2084,16 +2089,14 @@ async function connectToGoogleSync(user) {
         const cloudData = snapshot.val();
 
         if (cloudData) {
-            // 데이터 병합 (최신순 덮어쓰기)
-            const localUpdatedAt = parseInt(localStorage.getItem('editor_app_updated_at') || '0');
-            if (!cloudData.updatedAt || cloudData.updatedAt > localUpdatedAt) {
-                applyCloudData(cloudData);
-                if (cloudData.updatedAt) localStorage.setItem('editor_app_updated_at', cloudData.updatedAt.toString());
-                showToast('클라우드에서 최신 데이터를 동기화했습니다.', 'success');
-            } else if (localUpdatedAt > cloudData.updatedAt) {
-                // 오프라인 동안 로컬 데이터가 업데이트된 경우
-                await uploadToCloud();
+            // 로그인/재로그인 시 항상 클라우드 데이터를 우선 적용
+            // (로컬 타임스탬프와 비교하지 않음 — 재로그인 기기의 오래된 로컬 데이터가
+            //  클라우드의 최신 데이터를 덮어쓰는 치명적 버그 방지)
+            applyCloudData(cloudData);
+            if (cloudData.updatedAt) {
+                localStorage.setItem('editor_app_updated_at', cloudData.updatedAt.toString());
             }
+            showToast('클라우드에서 데이터를 동기화했습니다.', 'success');
         } else {
             // 새 사용자이거나 클라우드에 데이터가 없으면 로컬 데이터 업로드
             await uploadToCloud();
@@ -2111,6 +2114,7 @@ async function connectToGoogleSync(user) {
         showToast('동기화 연결에 실패했습니다. 권한을 확인해주세요.', 'error');
     } finally {
         hideLoading();
+        isSyncConnecting = false; // 보호 플래그 해제
     }
 }
 
@@ -2296,8 +2300,8 @@ const originalSaveData = saveData;
 saveData = function () {
     originalSaveData();
 
-    // 클라우드 데이터 적용 중이면 업로드하지 않음 (무한 루프 방지)
-    if (isApplyingCloudData || !firebaseApp) {
+    // 클라우드 데이터 적용 중이거나 동기화 연결 중이면 업로드하지 않음
+    if (isApplyingCloudData || isSyncConnecting || !firebaseApp) {
         return;
     }
 
