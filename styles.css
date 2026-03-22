@@ -2343,7 +2343,7 @@ form {
     z-index: 10000;
     background: var(--bg-primary);
     display: flex;
-    align-items: center;
+    align-items: stretch;
     justify-content: center;
     animation: gateIn 0.5s ease;
 }
@@ -2353,11 +2353,91 @@ form {
     to { opacity: 1; }
 }
 
+.login-gate-left {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-2xl);
+}
+
 .login-gate-content {
     text-align: center;
-    padding: var(--space-2xl);
     max-width: 400px;
     width: 100%;
+}
+
+.login-gate-right {
+    flex: 1.2;
+    background: var(--bg-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+    border-left: 1px solid var(--border-color);
+}
+
+.login-slider-container {
+    height: 100vh;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    pointer-events: none;
+    -webkit-mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+    mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+}
+
+.login-slider-track {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+    padding: 3rem 4rem;
+    /* 50% shift to account for 6 original images + 6 cloned images, minus half a gap. */
+    animation: slideVertical 30s linear infinite;
+}
+
+.slider-image {
+    width: 100%;
+    max-width: 600px;
+    height: auto;
+    border-radius: var(--border-radius-lg);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    margin: 0 auto;
+    border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .slider-image {
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+}
+
+@keyframes slideVertical {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(calc(-50% - 1.5rem)); }
+}
+
+@media (max-width: 768px) {
+    .login-gate {
+        flex-direction: column;
+    }
+    .login-gate-left {
+        flex: none;
+        height: 100vh;
+        z-index: 2;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(10px);
+    }
+    [data-theme="dark"] .login-gate-left {
+        background: rgba(26, 26, 30, 0.85);
+    }
+    .login-gate-right {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        z-index: 1;
+        opacity: 0.4;
+        border-left: none;
+    }
 }
 
 .login-gate-icon {
