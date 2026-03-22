@@ -2082,7 +2082,39 @@ function initCloudSync() {
     document.getElementById('sync-logout-btn')?.addEventListener('click', () => {
         if (confirm('로그아웃하시겠습니까?\n로그아웃하면 로그인 화면으로 돌아갑니다.')) {
             firebase.auth().signOut().then(() => {
+                // 저장된 클라우드 업데이트 시간 및 로컬 데이터 모두 초기화
                 localStorage.removeItem('editor_app_updated_at');
+                
+                // 계정 전환 시 데이터 잔류를 막기 위해 로컬 데이터 삭제
+                localStorage.removeItem(STORAGE_KEYS.CHANNELS);
+                localStorage.removeItem(STORAGE_KEYS.TASKS);
+                localStorage.removeItem(STORAGE_KEYS.DAILY_LOGS);
+                localStorage.removeItem(STORAGE_KEYS.BANK_INFO);
+                
+                // 메모리 상의 데이터도 초기화
+                channels = [];
+                tasks = [];
+                dailyLogs = {};
+                if (typeof selectedTasks !== 'undefined') {
+                    selectedTasks.clear();
+                }
+                
+                // 화면 초기화
+                renderChannels();
+                renderTasks();
+                if (typeof updateSummary === 'function') {
+                    updateSummary();
+                }
+                
+                // 은행 정보 폼 초기화
+                const bankNameInput = document.getElementById('bank-name');
+                const accountNumberInput = document.getElementById('account-number');
+                const accountHolderInput = document.getElementById('account-holder');
+                
+                if (bankNameInput) bankNameInput.value = '';
+                if (accountNumberInput) accountNumberInput.value = '';
+                if (accountHolderInput) accountHolderInput.value = '';
+                
                 showToast('로그아웃 되었습니다.', 'success');
             }).catch((error) => {
                 console.error('로그아웃 실패:', error);
