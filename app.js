@@ -2425,9 +2425,11 @@ function initLoginSlider() {
 
     function updateSlider(animate = true) {
         if (animate) {
-            track.style.transition = 'transform 1.5s cubic-bezier(0.25, 0.8, 0.25, 1)';
+            track.style.transition = '';
+            allImages.forEach(img => img.style.transition = '');
         } else {
             track.style.transition = 'none';
+            allImages.forEach(img => img.style.transition = 'none');
         }
 
         allImages.forEach((img, index) => {
@@ -2444,6 +2446,11 @@ function initLoginSlider() {
             const imgCenter = activeImg.offsetTop + (activeImg.offsetHeight / 2);
             const offset = (containerHeight / 2) - imgCenter;
             track.style.transform = `translateY(${offset}px)`;
+        }
+
+        if (!animate) {
+            // 레이아웃 강제 재계산 (움찔거림 방지)
+            void track.offsetWidth;
         }
     }
 
