@@ -583,22 +583,8 @@ body {
     border: 2px solid var(--border-color);
     border-radius: var(--border-radius-lg);
     padding: var(--space-md);
-    padding-left: calc(var(--space-md) + 6px);
     transition: all var(--transition-normal);
     position: relative;
-    overflow: hidden;
-}
-
-/* 작업 타입별 좌측 액센트 바 */
-.task-card::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 5px;
-    background: var(--border-color);
-    border-radius: var(--border-radius-lg) 0 0 var(--border-radius-lg);
 }
 
 .task-card:hover {
@@ -766,17 +752,9 @@ body {
     border-color: var(--accent-primary);
 }
 
-.task-card.type-longform::before {
-    background: var(--accent-primary);
-}
-
 /* 숏폼 - 다크레드 */
 .task-card.type-shortform {
     border-color: var(--accent-secondary);
-}
-
-.task-card.type-shortform::before {
-    background: #2B6CB0;
 }
 
 /* 썸네일 - 골드 */
@@ -784,17 +762,9 @@ body {
     border-color: var(--accent-warning);
 }
 
-.task-card.type-thumbnail::before {
-    background: #C8981E;
-}
-
 /* 기타 - 회색 */
 .task-card.type-other {
     border-color: var(--text-muted);
-}
-
-.task-card.type-other::before {
-    background: #888888;
 }
 
 /* 완료 상태일 때 성공 색상으로 통일 */
@@ -803,15 +773,6 @@ body {
 .task-card.completed.type-thumbnail,
 .task-card.completed.type-other {
     border-color: var(--accent-success);
-}
-
-.task-card.completed::before {
-    background: var(--accent-success);
-}
-
-/* 실행 중일 때 액센트 바도 성공 색상 */
-.task-card.running::before {
-    background: var(--accent-success);
 }
 
 .task-card-header {
@@ -859,8 +820,8 @@ body {
 }
 
 .task-badge.type-shortform {
-    background: rgba(43, 108, 176, 0.1);
-    color: #2B6CB0;
+    background: rgba(100, 27, 46, 0.1);
+    color: var(--accent-secondary);
 }
 
 .task-badge.type-thumbnail {
