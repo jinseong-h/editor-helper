@@ -2341,7 +2341,21 @@ form {
     right: 0;
     bottom: 0;
     z-index: 10000;
-    background: var(--bg-primary);
+    background: #FDF8F3;
+    color: #2D1F1F;
+    --bg-primary: #FDF8F3;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #F9F0E8;
+    --bg-card: #ffffff;
+    --bg-card-hover: #FDF8F3;
+    --accent-primary: #8A2D3B;
+    --accent-warning: #FBDB93;
+    --accent-danger: #BE5B50;
+    --accent-success: #5A8A6A;
+    --text-primary: #2D1F1F;
+    --text-secondary: #5C4545;
+    --text-muted: #9A8585;
+    --border-color: #E8DCD0;
     display: flex;
     align-items: stretch;
     justify-content: center;
@@ -2422,12 +2436,7 @@ form {
     z-index: 10;
 }
 
-[data-theme="dark"] .slider-image {
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-}
-[data-theme="dark"] .slider-image.active {
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
-}
+
 
 @media (max-width: 768px) {
     .login-gate {
@@ -2440,9 +2449,7 @@ form {
         background: rgba(255, 255, 255, 0.85);
         backdrop-filter: blur(10px);
     }
-    [data-theme="dark"] .login-gate-left {
-        background: rgba(26, 26, 30, 0.85);
-    }
+
     .login-gate-right {
         position: absolute;
         top: 0; left: 0; right: 0; bottom: 0;
@@ -2474,13 +2481,16 @@ form {
     display: none;
 }
 
-[data-theme="dark"] .login-gate-logo-light {
+/* 로그인 화면은 항상 라이트모드 로고만 사용 */
+[data-theme="dark"] .login-gate .login-gate-logo-light {
+    display: inline;
+}
+
+[data-theme="dark"] .login-gate .login-gate-logo-dark {
     display: none;
 }
 
-[data-theme="dark"] .login-gate-logo-dark {
-    display: block;
-}
+
 
 .login-gate-desc {
     font-size: var(--font-size-base);
@@ -2519,15 +2529,7 @@ form {
     transform: translateY(0);
 }
 
-[data-theme="dark"] .login-gate-btn {
-    background: var(--bg-tertiary);
-    color: var(--text-primary);
-    border-color: var(--border-color);
-}
 
-[data-theme="dark"] .login-gate-btn:hover {
-    border-color: #4285F4;
-}
 
 .login-gate-hint {
     font-size: var(--font-size-sm);
