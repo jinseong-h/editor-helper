@@ -2407,14 +2407,30 @@ saveData = function () {
 function initLoginSlider() {
     const track = document.querySelector('.login-slider-track');
     if (!track) return;
-    const images = Array.from(track.querySelectorAll('.slider-image'));
-    if (images.length === 0) return;
+    const originalImages = Array.from(track.querySelectorAll('.slider-image'));
+    const totalOriginal = originalImages.length;
+    if (totalOriginal === 0) return;
 
-    let currentIndex = 0;
-    const totalImages = images.length;
+    // 3배수로 복제하여 무한 루프 구현 (가운데 세트에서 시작)
+    track.innerHTML = '';
+    for(let i=0; i<3; i++) {
+        originalImages.forEach(img => {
+            const clone = img.cloneNode(true);
+            track.appendChild(clone);
+        });
+    }
 
-    function updateSlider() {
-        images.forEach((img, index) => {
+    const allImages = Array.from(track.querySelectorAll('.slider-image'));
+    let currentIndex = totalOriginal; // 중간 세트의 첫 번째 이미지부터 시작
+
+    function updateSlider(animate = true) {
+        if (animate) {
+            track.style.transition = 'transform 1.5s cubic-bezier(0.25, 0.8, 0.25, 1)';
+        } else {
+            track.style.transition = 'none';
+        }
+
+        allImages.forEach((img, index) => {
             if (index === currentIndex) {
                 img.classList.add('active');
             } else {
@@ -2422,7 +2438,7 @@ function initLoginSlider() {
             }
         });
 
-        const activeImg = images[currentIndex];
+        const activeImg = allImages[currentIndex];
         if (activeImg) {
             const containerHeight = track.parentElement.clientHeight;
             const imgCenter = activeImg.offsetTop + (activeImg.offsetHeight / 2);
@@ -2431,13 +2447,31 @@ function initLoginSlider() {
         }
     }
 
-    setTimeout(updateSlider, 100);
-    window.addEventListener('resize', updateSlider);
+    track.addEventListener('transitionend', (e) => {
+        if (e.target !== track || e.propertyName !== 'transform') return;
+        
+        // 끝 세트에 도달하면 다시 중간 세트로 깜빡임 없이 이동
+        if (currentIndex >= totalOriginal * 2) {
+            currentIndex -= totalOriginal;
+            updateSlider(false);
+        } else if (currentIndex < totalOriginal) {
+            currentIndex += totalOriginal;
+            updateSlider(false);
+        }
+    });
+
+    setTimeout(() => {
+        updateSlider(false);
+    }, 100);
+
+    window.addEventListener('resize', () => {
+        updateSlider(false);
+    });
 
     setInterval(() => {
-        currentIndex = (currentIndex + 1) % totalImages;
-        updateSlider();
-    }, 3500);
+        currentIndex++;
+        updateSlider(true);
+    }, 4500); // 1.5초 이동 + 3초 대기 = 4.5초 간격
 }
 
 // ===================================

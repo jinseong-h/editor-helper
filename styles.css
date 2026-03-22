@@ -2390,28 +2390,27 @@ form {
 .login-slider-track {
     display: flex;
     flex-direction: column;
-    gap: 4rem;
+    gap: 5rem;
     padding: 50vh 4rem; /* To allow first and last items to be centered */
-    transition: transform 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .slider-image {
-    width: 100%;
-    max-width: 700px;
+    width: 80%;
+    max-width: 1000px;
     height: auto;
     border-radius: var(--border-radius-lg);
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
     margin: 0 auto;
     border: 1px solid var(--border-color);
-    transition: all 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
-    opacity: 0.4;
-    transform: scale(0.85);
+    transition: all 1.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+    opacity: 0.2;
+    transform: scale(0.75);
 }
 
 .slider-image.active {
     opacity: 1;
-    transform: scale(1.05); /* Make it bigger */
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+    transform: scale(1.2); /* Make it much bigger */
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.4);
     z-index: 10;
 }
 
