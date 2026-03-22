@@ -2097,9 +2097,19 @@ function loginWithGoogle() {
     provider.setCustomParameters({
         prompt: 'select_account'
     });
-    firebase.auth().signInWithRedirect(provider).catch((error) => {
-        console.error('Google 로그인 페이지 이동 실패:', error);
-        showToast('로그인 페이지 이동에 실패했습니다.', 'error');
+    firebase.auth().signInWithPopup(provider).catch((error) => {
+        console.error('Google 로그인 실패:', error);
+        showToast('로그인에 실패했습니다.', 'error');
+        
+        if (error.code === 'auth/operation-not-allowed') {
+            alert('Firebase 콘솔에서 Google 로그인 제공업체가 활성화되지 않았습니다.');
+        } else if (error.code === 'auth/unauthorized-domain') {
+            alert('승인되지 않은 도메인입니다. Firebase 콘솔의 Authentication -> Settings -> 승인된 도메인에 현재 접속 중인 주소를 추가해주세요. (현재 URL: ' + window.location.hostname + ')');
+        } else if (window.location.protocol === 'file:') {
+            alert('로컬 파일(file://) 환경에서는 Google 로그인이 작동하지 않을 수 있습니다.');
+        } else {
+            alert('로그인 에러: ' + error.message);
+        }
     });
 }
 
