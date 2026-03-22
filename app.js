@@ -2080,6 +2080,9 @@ function initCloudSync() {
 // Google 로그인 공통 함수
 function loginWithGoogle() {
     const provider = new firebase.auth.GoogleAuthProvider();
+    provider.setCustomParameters({
+        prompt: 'select_account'
+    });
     firebase.auth().signInWithPopup(provider).catch((error) => {
         console.error('Google 로그인 실패:', error);
         showToast('로그인에 실패했습니다.', 'error');
