@@ -1,0 +1,6 @@
+[build]
+  publish = "."
+
+# test/ 로 시작하는 브랜치도 자동 배포 (프리뷰용)
+[context.branch-deploy]
+  publish = "."
