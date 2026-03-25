@@ -27,7 +27,7 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=2">
 </head>
 
 <body>
@@ -640,10 +640,11 @@
             <div class="modal-body" style="text-align: center; padding: 2rem 1rem;">
                 <p style="margin-bottom: 1.5rem; font-size: 1.1rem; line-height: 1.6;">건의 사항이나 문의 사항은<br>아래 메일로 보내주세요!
                 </p>
-                <a href="mailto:boss4534@gmail.com" class="btn btn-primary"
-                    style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 1.1rem; padding: 0.8rem 1.5rem;">
-                    <span>📧</span> boss4534@gmail.com
-                </a>
+                <button id="copy-email-btn" class="btn btn-primary"
+                    style="display: inline-flex; align-items: center; gap: 0.5rem; font-size: 1.1rem; padding: 0.8rem 1.5rem; cursor: pointer;">
+                    <span>📋</span> a_dot@kakao.com
+                </button>
+                <p style="margin-top: 0.8rem; font-size: 0.85rem; color: var(--text-secondary);">클릭하면 메일 주소가 복사됩니다</p>
             </div>
         </div>
     </div>
@@ -777,7 +778,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
-    <script src="app.js"></script>
+    <script src="app.js?v=2"></script>
 </body>
 
 </html>

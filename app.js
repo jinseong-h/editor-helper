@@ -104,7 +104,7 @@ function applyTheme(theme) {
 }
 
 // ===================================
-// Guide & Suggestion Modal
+// Guide & Suggestion Modal & Email Copy
 // ===================================
 function initGuideModal() {
     const infoBtn = document.getElementById('info-btn');
@@ -118,6 +118,23 @@ function initGuideModal() {
 
     suggestionBtn?.addEventListener('click', () => openModal('suggestion-modal'));
     suggestionCloseBtn?.addEventListener('click', () => closeModal('suggestion-modal'));
+
+    // 이메일 복사 버튼
+    const copyEmailBtn = document.getElementById('copy-email-btn');
+    copyEmailBtn?.addEventListener('click', () => {
+        navigator.clipboard.writeText('a_dot@kakao.com').then(() => {
+            showToast('메일 주소가 복사되었습니다!', 'success');
+        }).catch(() => {
+            // fallback
+            const ta = document.createElement('textarea');
+            ta.value = 'a_dot@kakao.com';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            showToast('메일 주소가 복사되었습니다!', 'success');
+        });
+    });
 }
 
 // ===================================
@@ -355,10 +372,6 @@ function initTaskManagement() {
     const form = document.getElementById('task-form');
 
     addBtn?.addEventListener('click', () => {
-        if (channels.length === 0) {
-            showToast('먼저 설정에서 고객을 추가해주세요.', 'warning');
-            return;
-        }
         resetTaskForm();
         document.getElementById('task-modal-title').textContent = '새 작업 추가';
         openModal('task-modal');
@@ -411,6 +424,11 @@ function updateRateHint() {
     const videoSeconds = parseInt(document.getElementById('task-video-seconds').value) || 0;
     const rateHint = document.getElementById('rate-hint');
     const rateInput = document.getElementById('task-rate');
+
+    if (channelId === '__unassigned__') {
+        rateHint.textContent = '고객 미지정 - 단가 직접 입력';
+        return;
+    }
 
     const channel = channels.find(c => c.id === channelId);
     if (!channel) {
@@ -467,7 +485,7 @@ function saveTask() {
     const rate = parseInt(document.getElementById('task-rate').value.replace(/,/g, '')) || 0;
 
     if (!name || !channelId) {
-        showToast('작업명과 고객을 입력해주세요.', 'warning');
+        showToast('작업명과 고객을 선택해주세요.', 'warning');
         return;
     }
 
@@ -575,11 +593,18 @@ function updateChannelSelects() {
         if (!select) return;
 
         const currentValue = select.value;
-        const isFilterSelect = select.id !== 'task-channel';
+        const isTaskSelect = select.id === 'task-channel';
+        const isFilterSelect = !isTaskSelect;
 
         select.innerHTML = isFilterSelect
             ? '<option value="">모든 고객</option>'
             : '<option value="">고객 선택</option>';
+
+        // '고객 미지정' 옵션 추가
+        const unassignedOption = document.createElement('option');
+        unassignedOption.value = '__unassigned__';
+        unassignedOption.textContent = '고객 미지정';
+        select.appendChild(unassignedOption);
 
         channels.forEach(channel => {
             const option = document.createElement('option');
@@ -588,7 +613,7 @@ function updateChannelSelects() {
             select.appendChild(option);
         });
 
-        if (currentValue && channels.some(c => c.id === currentValue)) {
+        if (currentValue && (currentValue === '__unassigned__' || channels.some(c => c.id === currentValue))) {
             select.value = currentValue;
         }
     });
@@ -647,7 +672,7 @@ function getFilteredTasks() {
 
 function createTaskHTML(task) {
     const channel = channels.find(c => c.id === task.channelId);
-    const channelName = channel ? channel.name : '(삭제된 고객)';
+    const channelName = task.channelId === '__unassigned__' ? '고객 미지정' : (channel ? channel.name : '(삭제된 고객)');
     const typeLabels = {
         longform: '롱폼',
         shortform: '숏폼',
@@ -1064,6 +1089,7 @@ function updateSummary() {
     if (channelId) {
         filteredTasks = filteredTasks.filter(t => t.channelId === channelId);
     }
+    // '__unassigned__' 고객도 요약에서 필터 가능
 
     // 통계 계산
     const totalTasks = filteredTasks.length;
@@ -1111,7 +1137,7 @@ function updateHourlyChart(filteredTasks) {
                 ? Math.floor(stats.totalRate / (stats.totalSeconds / 3600))
                 : 0;
             return {
-                name: channel ? channel.name : '(삭제된 고객)',
+                name: channelId === '__unassigned__' ? '고객 미지정' : (channel ? channel.name : '(삭제된 고객)'),
                 hourlyRate
             };
         })
@@ -2478,15 +2504,34 @@ function initLoginSlider() {
         }
     });
 
-    setTimeout(() => {
+    // Ensure accurate calculation even if images are slow to load
+    Promise.all(originalImages.map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise(res => { img.onload = res; img.onerror = res; });
+    })).then(() => {
         updateSlider(false);
-    }, 100);
+    });
 
     window.addEventListener('resize', () => {
         updateSlider(false);
     });
 
     setInterval(() => {
+        // Do not update animations if the tab is inactive or the login gate is hidden
+        if (document.hidden || track.parentElement.clientHeight === 0) return;
+
+        // Failsafe: if out of bounds due to missing transitionend events
+        if (currentIndex >= totalOriginal * 2) {
+            currentIndex -= totalOriginal;
+            updateSlider(false);
+            // Wait a frame for the 'none' transition to apply before sliding to the next
+            setTimeout(() => {
+                currentIndex++;
+                updateSlider(true);
+            }, 50);
+            return;
+        }
+
         currentIndex++;
         updateSlider(true);
     }, 4500); // 1.5초 이동 + 3초 대기 = 4.5초 간격
