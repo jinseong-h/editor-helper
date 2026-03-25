@@ -10,7 +10,8 @@ const STORAGE_KEYS = {
     TASKS: 'editor_app_tasks',
     BANK_INFO: 'editor_app_bank_info',
     DAILY_LOGS: 'editor_app_daily_logs',
-    THEME: 'editor_app_theme'
+    THEME: 'editor_app_theme',
+    PIP_TIMER: 'editor_app_pip_timer'
 };
 
 // 데이터 저장소
@@ -902,6 +903,9 @@ function startStopwatch(taskId) {
     }, 1000);
 
     renderTasks();
+
+    // PiP 타이머 열기
+    openPipTimer();
 }
 
 // 일별 작업 시간 업데이트 (자정 지날 경우 분할)
@@ -958,6 +962,9 @@ function stopStopwatch(taskId) {
     }
 
     renderTasks();
+
+    // PiP 타이머 업데이트 (실행 중인 타이머가 없으면 닫기)
+    updatePipTimerContent();
 }
 
 function resetStopwatch(taskId) {
@@ -977,6 +984,9 @@ function resetStopwatch(taskId) {
     task.lastStartTime = null;
     saveData();
     renderTasks();
+
+    // PiP 타이머 업데이트
+    updatePipTimerContent();
 }
 
 function openTimeEditModal(taskId) {
@@ -1024,6 +1034,228 @@ function initTimeEditModal() {
 }
 
 // 페이지 종료 시 실행 중인 스탑워치 저장 로직 제거 (다른 기기에서 타이머가 멈추는 버그 수정)
+
+// ===================================
+// PiP (Picture-in-Picture) Timer
+// ===================================
+let pipWindow = null;
+let pipUpdateInterval = null;
+
+function isPipEnabled() {
+    const saved = localStorage.getItem(STORAGE_KEYS.PIP_TIMER);
+    return saved === null ? true : saved === 'true'; // 기본값: 켜짐
+}
+
+function initPipTimerSetting() {
+    const toggle = document.getElementById('pip-timer-toggle');
+    if (!toggle) return;
+
+    toggle.checked = isPipEnabled();
+
+    toggle.addEventListener('change', () => {
+        localStorage.setItem(STORAGE_KEYS.PIP_TIMER, toggle.checked.toString());
+        if (!toggle.checked && pipWindow && !pipWindow.closed) {
+            pipWindow.close();
+            pipWindow = null;
+        }
+        showToast(toggle.checked ? 'PiP 타이머가 활성화되었습니다.' : 'PiP 타이머가 비활성화되었습니다.', 'success');
+    });
+}
+
+function isPipSupported() {
+    return 'documentPictureInPicture' in window;
+}
+
+async function openPipTimer() {
+    if (!isPipEnabled() || !isPipSupported()) return;
+
+    // 이미 열려 있으면 내용만 업데이트
+    if (pipWindow && !pipWindow.closed) {
+        updatePipTimerContent();
+        return;
+    }
+
+    try {
+        pipWindow = await documentPictureInPicture.requestWindow({
+            width: 340,
+            height: 200
+        });
+
+        // PiP 창에 스타일 주입
+        const style = pipWindow.document.createElement('style');
+        style.textContent = getPipStyles();
+        pipWindow.document.head.appendChild(style);
+
+        // Google Fonts 로드
+        const fontLink = pipWindow.document.createElement('link');
+        fontLink.rel = 'stylesheet';
+        fontLink.href = 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap';
+        pipWindow.document.head.appendChild(fontLink);
+
+        // 컨테이너 생성
+        const container = pipWindow.document.createElement('div');
+        container.id = 'pip-container';
+        pipWindow.document.body.appendChild(container);
+
+        // 창 닫힐 때 정리
+        pipWindow.addEventListener('pagehide', () => {
+            if (pipUpdateInterval) {
+                clearInterval(pipUpdateInterval);
+                pipUpdateInterval = null;
+            }
+            pipWindow = null;
+        });
+
+        // 내용 업데이트
+        updatePipTimerContent();
+
+        // 주기적 업데이트 (1초마다)
+        pipUpdateInterval = setInterval(() => {
+            if (pipWindow && !pipWindow.closed) {
+                updatePipTimerContent();
+            } else {
+                clearInterval(pipUpdateInterval);
+                pipUpdateInterval = null;
+            }
+        }, 1000);
+
+    } catch (e) {
+        console.warn('PiP 타이머 열기 실패:', e);
+    }
+}
+
+function updatePipTimerContent() {
+    if (!pipWindow || pipWindow.closed) return;
+
+    const container = pipWindow.document.getElementById('pip-container');
+    if (!container) return;
+
+    const runningTasks = tasks.filter(t => t.isRunning);
+
+    if (runningTasks.length === 0) {
+        // 실행 중인 타이머 없으면 창 닫기
+        pipWindow.close();
+        pipWindow = null;
+        if (pipUpdateInterval) {
+            clearInterval(pipUpdateInterval);
+            pipUpdateInterval = null;
+        }
+        return;
+    }
+
+    container.innerHTML = runningTasks.map(task => {
+        const channel = channels.find(c => c.id === task.channelId);
+        const channelName = task.channelId === '__unassigned__' ? '고객 미지정' : (channel ? channel.name : '');
+        const elapsed = getTaskElapsedSeconds(task);
+        const timeStr = formatTime(elapsed);
+
+        return `
+            <div class="pip-task">
+                <div class="pip-task-info">
+                    <div class="pip-task-name">${escapeHtml(task.name)}</div>
+                    ${channelName ? `<div class="pip-task-channel">${escapeHtml(channelName)}</div>` : ''}
+                </div>
+                <div class="pip-task-timer">
+                    <div class="pip-time">${timeStr}</div>
+                    <button class="pip-btn pip-pause" data-id="${task.id}">⏸</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    // 일시정지 버튼 이벤트 연결
+    container.querySelectorAll('.pip-pause').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const taskId = btn.dataset.id;
+            stopStopwatch(taskId);
+        });
+    });
+}
+
+function getPipStyles() {
+    return `
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Pretendard Variable', -apple-system, sans-serif;
+            background: #1a1a2e;
+            color: #e0e0e0;
+            overflow: hidden;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        #pip-container {
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .pip-task {
+            background: rgba(255,255,255,0.08);
+            border-radius: 10px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .pip-task-info {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+        }
+        .pip-task-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .pip-task-channel {
+            font-size: 11px;
+            color: rgba(255,255,255,0.5);
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .pip-task-timer {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .pip-time {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 18px;
+            font-weight: 700;
+            color: #4ecdc4;
+            letter-spacing: 1px;
+        }
+        .pip-btn {
+            width: 30px;
+            height: 30px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: transform 0.15s, background 0.15s;
+        }
+        .pip-btn:hover { transform: scale(1.15); }
+        .pip-btn:active { transform: scale(0.95); }
+        .pip-pause {
+            background: rgba(255,107,107,0.2);
+            color: #ff6b6b;
+        }
+        .pip-pause:hover { background: rgba(255,107,107,0.35); }
+    `;
+}
 
 // ===================================
 // Summary Page
@@ -2251,6 +2483,7 @@ async function uploadToCloud(timestamp = Date.now()) {
             tasks: tasks || [],
             dailyLogs: dailyLogs || {},
             bankInfo: getBankInfo(),
+            pipTimerEnabled: isPipEnabled(),
             updatedAt: timestamp
         });
         localStorage.setItem('editor_app_updated_at', timestamp.toString());
@@ -2278,6 +2511,13 @@ function applyCloudData(cloudData) {
     // 입금 정보도 클라우드에서 복원
     if (cloudData.bankInfo) {
         localStorage.setItem(STORAGE_KEYS.BANK_INFO, JSON.stringify(cloudData.bankInfo));
+    }
+
+    // PiP 설정 복원
+    if (cloudData.pipTimerEnabled !== undefined) {
+        localStorage.setItem(STORAGE_KEYS.PIP_TIMER, cloudData.pipTimerEnabled.toString());
+        const toggle = document.getElementById('pip-timer-toggle');
+        if (toggle) toggle.checked = cloudData.pipTimerEnabled;
     }
 
     // 클라우드에서 isRunning이 true인 작업에 대해 로컬 인터벌 재시작
@@ -2555,6 +2795,7 @@ function init() {
     initDataManagement();
     initCloudSync();
     initLoginSlider();
+    initPipTimerSetting();
 
     // Firebase 초기화 (약간의 지연 후)
     setTimeout(initFirebase, 500);
