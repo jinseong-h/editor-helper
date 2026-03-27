@@ -60,6 +60,43 @@ body {
     max-width: 1200px;
 }
 
+/* 통계 카드 */
+.admin-stats {
+    display: flex;
+    gap: 1.5rem;
+    padding: 2rem 2rem 0;
+    flex-wrap: wrap;
+}
+
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: var(--card-bg);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: 1.2rem 1.8rem;
+    flex: 1;
+    min-width: 180px;
+}
+
+.stat-icon {
+    font-size: 2rem;
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
 .admin-grid {
     display: grid;
     grid-template-columns: 1fr;

@@ -156,6 +156,22 @@ function renderUsers() {
 
     totalUsersBadge.textContent = `총 ${filteredUsers.length}명`;
 
+    // Update stat cards
+    const statTotal = document.getElementById('stat-total-users');
+    const statTodayActive = document.getElementById('stat-today-active');
+    if (statTotal) statTotal.textContent = allUsers.length;
+    if (statTodayActive) {
+        const now = new Date();
+        const kstOffset = 9 * 60 * 60 * 1000;
+        const d = new Date(now.getTime() + kstOffset);
+        const todayStr = `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;
+        const todayCount = allUsers.filter(u => {
+            if (!u.lastLoginAt) return false;
+            return u.lastLoginAt.startsWith(todayStr);
+        }).length;
+        statTodayActive.textContent = todayCount;
+    }
+
     if (filteredUsers.length === 0) {
         userListBody.innerHTML = '<tr><td colspan="3" style="text-align:center;">검색 결과가 없습니다.</td></tr>';
         userPagination.innerHTML = '';
