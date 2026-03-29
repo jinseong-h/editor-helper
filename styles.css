@@ -1268,6 +1268,7 @@ body {
 
 .channels-list {
     display: grid;
+    grid-template-columns: repeat(2, 1fr);
     gap: var(--space-md);
 }
 
@@ -1682,6 +1683,10 @@ form {
     }
 
     .tasks-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .channels-list {
         grid-template-columns: 1fr;
     }
 
