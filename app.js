@@ -572,6 +572,16 @@ function toggleTaskComplete(id) {
         stopStopwatch(id);
     }
 
+    // DOM에서 현재 입력된 단가 값을 먼저 반영 (onchange 미발생 방지)
+    const taskCard = document.querySelector(`.task-card[data-task-id="${id}"]`);
+    if (taskCard) {
+        const rateInput = taskCard.querySelector('.rate-input');
+        if (rateInput && !rateInput.disabled) {
+            const currentRate = parseInt(rateInput.value.replace(/,/g, '')) || 0;
+            task.rate = currentRate;
+        }
+    }
+
     task.isCompleted = !task.isCompleted;
     task.completedAt = task.isCompleted ? new Date().toISOString() : null;
 
@@ -869,7 +879,16 @@ function updateTaskRate(taskId, value) {
 
     task.rate = parseInt(value) || 0;
     saveData();
-    renderTasks();
+
+    // renderTasks()를 호출하면 DOM이 교체되어 입력 중인 값이 유실되므로
+    // 해당 카드의 rate-display만 업데이트
+    const taskCard = document.querySelector(`.task-card[data-task-id="${taskId}"]`);
+    if (taskCard) {
+        const rateDisplay = taskCard.querySelector('.rate-display');
+        if (rateDisplay) {
+            rateDisplay.textContent = formatCurrency(task.rate);
+        }
+    }
 }
 
 // ===================================
