@@ -396,8 +396,21 @@ function initTaskManagement() {
         e.target.value = val ? parseInt(val, 10).toLocaleString() : '';
     });
 
-    // 필터링
-    document.getElementById('filter-show-completed')?.addEventListener('change', renderTasks);
+    // 필터링 — 두 토글은 상호 배타적
+    document.getElementById('filter-show-completed')?.addEventListener('change', (e) => {
+        if (e.target.checked) {
+            const unsettledToggle = document.getElementById('filter-unsettled');
+            if (unsettledToggle) unsettledToggle.checked = false;
+        }
+        renderTasks();
+    });
+    document.getElementById('filter-unsettled')?.addEventListener('change', (e) => {
+        if (e.target.checked) {
+            const completedToggle = document.getElementById('filter-show-completed');
+            if (completedToggle) completedToggle.checked = false;
+        }
+        renderTasks();
+    });
     document.getElementById('filter-channel')?.addEventListener('change', renderTasks);
     document.getElementById('filter-type')?.addEventListener('change', renderTasks);
     document.getElementById('sort-order')?.addEventListener('change', renderTasks);
@@ -514,6 +527,8 @@ function saveTask() {
             createdAt: new Date().toISOString(),
             completedAt: null,
             isCompleted: false,
+            isSettled: false,
+            settledAt: null,
             elapsedSeconds: 0,
             isRunning: false,
             lastStartTime: null,
@@ -585,11 +600,32 @@ function toggleTaskComplete(id) {
     task.isCompleted = !task.isCompleted;
     task.completedAt = task.isCompleted ? new Date().toISOString() : null;
 
+    // 완료 해제 시 정산도 해제
+    if (!task.isCompleted) {
+        task.isSettled = false;
+        task.settledAt = null;
+    }
+
     saveData();
     renderTasks();
 
     if (task.isCompleted) {
         showToast('작업이 완료되었습니다! 🎉', 'success');
+    }
+}
+
+function toggleTaskSettled(id) {
+    const task = tasks.find(t => t.id === id);
+    if (!task || !task.isCompleted) return;
+
+    task.isSettled = !task.isSettled;
+    task.settledAt = task.isSettled ? new Date().toISOString() : null;
+
+    saveData();
+    renderTasks();
+
+    if (task.isSettled) {
+        showToast('정산 완료 처리되었습니다! 💰', 'success');
     }
 }
 
@@ -632,14 +668,18 @@ function updateChannelSelects() {
 
 function getFilteredTasks() {
     const showCompleted = document.getElementById('filter-show-completed')?.checked || false;
+    const showUnsettled = document.getElementById('filter-unsettled')?.checked || false;
     const filterChannel = document.getElementById('filter-channel')?.value || '';
     const filterType = document.getElementById('filter-type')?.value || '';
     const sortOrder = document.getElementById('sort-order')?.value || 'createdDesc';
 
     let filtered = [...tasks];
 
-    // 기본적으로 미완료 작업만 보기
-    if (!showCompleted) {
+    // 정산 미완료 필터 (완료되었지만 정산이 안 된 작업)
+    if (showUnsettled) {
+        filtered = filtered.filter(t => t.isCompleted && !t.isSettled);
+    } else if (!showCompleted) {
+        // 기본적으로 미완료 작업만 보기
         filtered = filtered.filter(t => !t.isCompleted);
     }
 
@@ -699,6 +739,7 @@ function createTaskHTML(task) {
     cardClass += ` type-${task.type}`;
     if (task.isRunning) cardClass += ' running';
     if (task.isCompleted) cardClass += ' completed';
+    if (task.isSettled) cardClass += ' settled';
 
     return `
         <div class="${cardClass}" data-task-id="${task.id}">
@@ -713,6 +754,7 @@ function createTaskHTML(task) {
                 </div>
                 <div class="task-actions">
                     ${task.isCompleted ? '<span class="completed-badge">완료</span>' : ''}
+                    ${task.isSettled ? '<span class="settled-badge">정산완료</span>' : ''}
                     <button class="btn btn-icon btn-secondary" onclick="editTask('${task.id}')" title="수정">✏️</button>
                     <button class="btn btn-icon btn-danger" onclick="deleteTask('${task.id}')" title="삭제">🗑️</button>
                 </div>
@@ -772,6 +814,14 @@ function createTaskHTML(task) {
                         onchange="toggleTaskComplete('${task.id}')">
                     <span>작업 완료</span>
                 </label>
+                ${task.isCompleted ? `
+                <label class="complete-label settle-label">
+                    <input type="checkbox" class="complete-checkbox settle-checkbox" 
+                        ${task.isSettled ? 'checked' : ''} 
+                        onchange="toggleTaskSettled('${task.id}')">
+                    <span>정산 완료</span>
+                </label>
+                ` : ''}
             </div>
         </div>
     `;

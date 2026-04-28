@@ -853,6 +853,18 @@ body {
     white-space: nowrap;
 }
 
+.settled-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 10px;
+    background: #e6a817;
+    color: white;
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    border-radius: var(--border-radius-sm);
+    white-space: nowrap;
+}
+
 .task-body-grid {
     display: grid;
     grid-template-columns: auto 1fr;
@@ -1071,9 +1083,28 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: var(--space-lg);
     padding-top: var(--space-md);
     border-top: 1px solid var(--border-color);
     margin-top: var(--space-md);
+}
+
+/* 정산 완료 체크박스 */
+.settle-label {
+    color: var(--text-muted);
+}
+
+.settle-label:hover {
+    color: var(--text-primary);
+}
+
+.settle-checkbox:checked {
+    background: #e6a817 !important;
+    border-color: #e6a817 !important;
+}
+
+.task-card.settled {
+    opacity: 0.35;
 }
 
 .complete-label {
