@@ -345,9 +345,22 @@
                         </div>
                     </div>
 
+                    <!-- 합계금액 절삭 설정 -->
+                    <div class="invoice-section">
+                        <h3>4. 합계금액 절삭 설정 (선택사항)</h3>
+                        <div class="rounding-container">
+                            <div class="rounding-toggle-group">
+                                <button class="rounding-btn active" data-rounding="none">절삭 안 함</button>
+                                <button class="rounding-btn" data-rounding="1">1원 단위 절삭</button>
+                                <button class="rounding-btn" data-rounding="10">10원 단위 절삭</button>
+                            </div>
+                            <p class="rounding-hint">선택 시 미리보기와 PDF의 합계 금액이 해당 단위 이하로 절삭되어 표시됩니다.</p>
+                        </div>
+                    </div>
+
                     <!-- 미리보기 및 생성 -->
                     <div class="invoice-section">
-                        <h3>4. 작업내역서 미리보기</h3>
+                        <h3>5. 작업내역서 미리보기</h3>
                         <div class="invoice-preview" id="invoice-preview">
                             <p class="preview-placeholder">고객과 기간을 선택하면 미리보기가 표시됩니다.</p>
                         </div>

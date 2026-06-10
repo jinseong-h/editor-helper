@@ -11,7 +11,8 @@ const STORAGE_KEYS = {
     BANK_INFO: 'editor_app_bank_info',
     DAILY_LOGS: 'editor_app_daily_logs',
     THEME: 'editor_app_theme',
-    PIP_TIMER: 'editor_app_pip_timer'
+    PIP_TIMER: 'editor_app_pip_timer',
+    INVOICE_ROUNDING: 'editor_app_invoice_rounding'
 };
 
 // 데이터 저장소
@@ -1517,6 +1518,27 @@ function initInvoicePage() {
 
     // PDF 생성 버튼
     document.getElementById('generate-pdf-btn')?.addEventListener('click', generateInvoicePDF);
+
+    // 절삭 옵션 버튼 이벤트 등록
+    const roundingButtons = document.querySelectorAll('.rounding-btn');
+    const savedRounding = localStorage.getItem(STORAGE_KEYS.INVOICE_ROUNDING) || 'none';
+    roundingButtons.forEach(btn => {
+        if (btn.dataset.rounding === savedRounding) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+
+    roundingButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            roundingButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const roundingOption = btn.dataset.rounding || 'none';
+            localStorage.setItem(STORAGE_KEYS.INVOICE_ROUNDING, roundingOption);
+            updateInvoicePreview();
+        });
+    });
 }
 
 function updateInvoiceChannelSelect() {
@@ -1600,6 +1622,15 @@ function getInvoiceTasks() {
     }).sort((a, b) => new Date(a.completedAt) - new Date(b.completedAt));
 }
 
+function getTruncatedAmount(amount, option) {
+    if (option === '1') {
+        return Math.floor(amount / 10) * 10;
+    } else if (option === '10') {
+        return Math.floor(amount / 100) * 100;
+    }
+    return amount;
+}
+
 function updateInvoicePreview() {
     const container = document.getElementById('invoice-preview');
     if (!container) return;
@@ -1624,7 +1655,9 @@ function updateInvoicePreview() {
         return;
     }
 
-    const totalAmount = invoiceTasks.reduce((sum, t) => sum + (t.rate || 0), 0);
+    const roundingOption = localStorage.getItem(STORAGE_KEYS.INVOICE_ROUNDING) || 'none';
+    const rawTotalAmount = invoiceTasks.reduce((sum, t) => sum + (t.rate || 0), 0);
+    const totalAmount = getTruncatedAmount(rawTotalAmount, roundingOption);
     const typeLabels = {
         longform: '롱폼',
         shortform: '숏폼',
@@ -1774,7 +1807,9 @@ function generateInvoicePDF() {
         return;
     }
 
-    const totalAmount = invoiceTasks.reduce((sum, t) => sum + (t.rate || 0), 0);
+    const roundingOption = localStorage.getItem(STORAGE_KEYS.INVOICE_ROUNDING) || 'none';
+    const rawTotalAmount = invoiceTasks.reduce((sum, t) => sum + (t.rate || 0), 0);
+    const totalAmount = getTruncatedAmount(rawTotalAmount, roundingOption);
     const typeLabels = {
         longform: '롱폼',
         shortform: '숏폼',
