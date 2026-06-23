@@ -2591,13 +2591,28 @@ function renderWeeklyCalendar() {
             const startTimeStr = `${String(oStartDate.getHours()).padStart(2, '0')}:${String(oStartDate.getMinutes()).padStart(2, '0')}`;
             const endTimeStr = `${String(oEndDate.getHours()).padStart(2, '0')}:${String(oEndDate.getMinutes()).padStart(2, '0')}`;
 
+            // Calculate total duration in minutes/hours
+            const diffMs = session.endTime - session.startTime;
+            const diffMin = Math.round(diffMs / (1000 * 60));
+            let durationStr = '';
+            if (diffMin >= 60) {
+                const hours = Math.floor(diffMin / 60);
+                const mins = diffMin % 60;
+                durationStr = mins > 0 ? `${hours}시간 ${mins}분` : `${hours}시간`;
+            } else {
+                durationStr = `${diffMin}분`;
+            }
+
             const block = document.createElement('div');
             block.className = `calendar-session-block ${colorClass}`;
             block.style.top = `${blockTop}px`;
             block.style.left = `${firstCell.offsetLeft + 2}px`;
             block.style.width = `${firstCell.offsetWidth - 4}px`;
             block.style.height = `${blockHeight}px`;
-            block.title = `${session.channelName} - ${session.taskName}\n${startTimeStr} ~ ${endTimeStr}`;
+            block.setAttribute('data-channel', session.channelName || '');
+            block.setAttribute('data-task', session.taskName || '');
+            block.setAttribute('data-time', `${startTimeStr} ~ ${endTimeStr}`);
+            block.setAttribute('data-duration', durationStr);
 
             if (blockHeight > 20) {
                 block.innerHTML = `<span class="session-task-name">${escapeHtml(session.taskName)}</span>
@@ -2622,6 +2637,70 @@ function renderWeeklyCalendar() {
     }
 }
 
+function getOrCreateTooltip() {
+    let tooltip = document.getElementById('calendar-tooltip');
+    if (!tooltip) {
+        tooltip = document.createElement('div');
+        tooltip.id = 'calendar-tooltip';
+        tooltip.className = 'calendar-tooltip';
+        document.body.appendChild(tooltip);
+    }
+    return tooltip;
+}
+
+function handleCalendarMouseOver(e) {
+    const block = e.target.closest('.calendar-session-block');
+    if (!block) return;
+
+    const channel = block.getAttribute('data-channel');
+    const task = block.getAttribute('data-task');
+    const time = block.getAttribute('data-time');
+    const duration = block.getAttribute('data-duration');
+
+    const tooltip = getOrCreateTooltip();
+    tooltip.innerHTML = `
+        <div class="tooltip-row"><span class="tooltip-label">고객명:</span><span class="tooltip-value">${escapeHtml(channel)}</span></div>
+        <div class="tooltip-row"><span class="tooltip-label">작업명:</span><span class="tooltip-value">${escapeHtml(task)}</span></div>
+        <div class="tooltip-row"><span class="tooltip-label">작업시간:</span><span class="tooltip-time">${time} (${duration})</span></div>
+    `;
+    tooltip.classList.add('show');
+}
+
+function handleCalendarMouseMove(e) {
+    const tooltip = document.getElementById('calendar-tooltip');
+    if (!tooltip || !tooltip.classList.contains('show')) return;
+
+    const tooltipWidth = tooltip.offsetWidth;
+    const tooltipHeight = tooltip.offsetHeight;
+    const pageWidth = window.innerWidth;
+    const pageHeight = window.innerHeight;
+
+    let left = e.pageX + 15;
+    let top = e.pageY + 15;
+
+    // Check right edge collision
+    if (left + tooltipWidth > pageWidth + window.scrollX - 20) {
+        left = e.pageX - tooltipWidth - 15;
+    }
+    // Check bottom edge collision
+    if (top + tooltipHeight > pageHeight + window.scrollY - 20) {
+        top = e.pageY - tooltipHeight - 15;
+    }
+
+    tooltip.style.left = `${left}px`;
+    tooltip.style.top = `${top}px`;
+}
+
+function handleCalendarMouseOut(e) {
+    const block = e.target.closest('.calendar-session-block');
+    if (!block) return;
+
+    const tooltip = document.getElementById('calendar-tooltip');
+    if (tooltip) {
+        tooltip.classList.remove('show');
+    }
+}
+
 function initWeeklyCalendar() {
     document.getElementById('week-prev-btn')?.addEventListener('click', () => {
         currentWeekOffset--;
@@ -2631,6 +2710,13 @@ function initWeeklyCalendar() {
         currentWeekOffset++;
         renderWeeklyCalendar();
     });
+
+    const grid = document.getElementById('weekly-calendar-grid');
+    if (grid) {
+        grid.addEventListener('mouseover', handleCalendarMouseOver);
+        grid.addEventListener('mousemove', handleCalendarMouseMove);
+        grid.addEventListener('mouseout', handleCalendarMouseOut);
+    }
 }
 
 // ===================================
