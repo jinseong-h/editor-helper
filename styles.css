@@ -2324,7 +2324,7 @@ form {
 }
 
 [data-theme="dark"] .btn-warning {
-    color: var(--text-primary);
+    color: var(--bg-primary);
 }
 
 /* Smooth transitions for theme switching */
