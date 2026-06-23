@@ -2671,6 +2671,15 @@ form {
 .nav-profile-icon {
     font-size: 1.1rem;
     line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.2em;
+    height: 1.2em;
+}
+.nav-profile-icon svg {
+    width: 100%;
+    height: 100%;
 }
 
 /* ===================================
@@ -2778,8 +2787,15 @@ form {
 .profile-dropdown-item span {
     font-size: 1.1rem;
     width: 22px;
-    text-align: center;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
+}
+.profile-dropdown-item span svg {
+    width: 100%;
+    height: 100%;
 }
 
 .profile-dropdown-item-danger {
