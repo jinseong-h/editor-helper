@@ -81,6 +81,9 @@ function updateSummary() {
     // 고객별 시급 차트 업데이트
     updateHourlyChart(filteredTasks);
 
+    // 월별 평균 시급 추이 차트 업데이트
+    updateMonthlyTrendChart(filteredTasks);
+
     // 기간 옵션 업데이트 (선택값 유지)
     generatePeriodOptions(period);
 }
@@ -1262,5 +1265,157 @@ function initWeeklyCalendar() {
         grid.addEventListener('mousemove', handleCalendarMouseMove);
         grid.addEventListener('mouseout', handleCalendarMouseOut);
     }
+}
+
+function updateMonthlyTrendChart(filteredTasks) {
+    const container = document.getElementById('monthly-trend-chart');
+    if (!container) return;
+
+    const excludeArchived = document.getElementById('exclude-archived-stats')?.checked ?? true;
+
+    // 1. Group tasks by month
+    const monthlyStats = {};
+    tasks.forEach(task => {
+        if (task.isCompleted && task.completedAt) {
+            // 보관된 고객 필터링
+            if (excludeArchived && task.channelId && !task.channelId.startsWith('__custom__::')) {
+                const channel = channels.find(c => c.id === task.channelId);
+                if (channel && channel.isArchived) {
+                    return;
+                }
+            }
+
+            const date = new Date(task.completedAt);
+            const yearMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            if (!monthlyStats[yearMonth]) {
+                monthlyStats[yearMonth] = { totalRate: 0, totalSeconds: 0 };
+            }
+            monthlyStats[yearMonth].totalRate += task.rate || 0;
+            monthlyStats[yearMonth].totalSeconds += task.elapsedSeconds || 0;
+        }
+    });
+
+    // 2. Calculate average hourly rate per month
+    let chartData = Object.entries(monthlyStats)
+        .map(([yearMonth, stats]) => {
+            const avgHourly = stats.totalSeconds > 0
+                ? Math.floor(stats.totalRate / (stats.totalSeconds / 3600))
+                : 0;
+            const [year, month] = yearMonth.split('-');
+            return {
+                rawMonth: yearMonth,
+                label: `${year.slice(-2)}년 ${parseInt(month)}월`,
+                rate: avgHourly
+            };
+        })
+        .filter(d => d.rate > 0)
+        .sort((a, b) => a.rawMonth.localeCompare(b.rawMonth));
+
+    // Show at most the last 12 months to avoid clutter
+    if (chartData.length > 12) {
+        chartData = chartData.slice(-12);
+    }
+
+    if (chartData.length === 0) {
+        container.innerHTML = '<div class="chart-empty">표시할 데이터가 없습니다 (완료된 작업 필요)</div>';
+        return;
+    }
+
+    // Render SVG
+    const width = 600;
+    const height = 220;
+    const paddingLeft = 55;
+    const paddingRight = 40;
+    const paddingTop = 30;
+    const paddingBottom = 40;
+
+    const rates = chartData.map(d => d.rate);
+    let maxRate = Math.max(...rates);
+    let minRate = Math.min(...rates);
+
+    // If max and min are equal, pad them
+    if (maxRate === minRate) {
+        maxRate += 5000;
+        minRate = Math.max(0, minRate - 5000);
+    } else {
+        const diff = maxRate - minRate;
+        maxRate += diff * 0.15;
+        minRate = Math.max(0, minRate - diff * 0.15);
+    }
+
+    const points = [];
+    const stepX = chartData.length > 1 
+        ? (width - paddingLeft - paddingRight) / (chartData.length - 1)
+        : 0;
+
+    chartData.forEach((d, i) => {
+        const x = chartData.length > 1 
+            ? paddingLeft + i * stepX
+            : paddingLeft + (width - paddingLeft - paddingRight) / 2;
+        const y = height - paddingBottom - ((d.rate - minRate) / (maxRate - minRate)) * (height - paddingTop - paddingBottom);
+        points.push({ x, y, label: d.label, rate: d.rate });
+    });
+
+    // Create polyline/path points string
+    const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+    
+    // Create fill area path string
+    const floorY = height - paddingBottom;
+    const fillPath = points.length > 0
+        ? `${linePath} L ${points[points.length - 1].x} ${floorY} L ${points[0].x} ${floorY} Z`
+        : '';
+
+    // Draw Y-axis grid lines (3 guide lines)
+    const yGridLines = [];
+    for (let i = 0; i <= 2; i++) {
+        const value = minRate + (maxRate - minRate) * (i / 2);
+        const y = height - paddingBottom - (i / 2) * (height - paddingTop - paddingBottom);
+        yGridLines.push({ y, value });
+    }
+
+    // Build SVG inner HTML
+    let svgContent = `
+        <svg viewBox="0 0 ${width} ${height}" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" style="overflow: visible;">
+            <defs>
+                <linearGradient id="area-gradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="var(--accent-primary)" stop-opacity="0.3"/>
+                    <stop offset="100%" stop-color="var(--accent-primary)" stop-opacity="0.0"/>
+                </linearGradient>
+            </defs>
+            
+            <!-- Grid Lines -->
+            ${yGridLines.map(line => `
+                <line x1="${paddingLeft}" y1="${line.y}" x2="${width - paddingRight}" y2="${line.y}" stroke="var(--border-color)" stroke-dasharray="4,4" stroke-width="1" />
+                <text x="${paddingLeft - 8}" y="${line.y + 4}" fill="var(--text-secondary)" font-size="10" text-anchor="end" font-family="inherit">${formatCurrencyShort(line.value)}</text>
+            `).join('')}
+            
+            <!-- Area Fill -->
+            ${fillPath ? `<path d="${fillPath}" fill="url(#area-gradient)" />` : ''}
+            
+            <!-- Trend Line -->
+            ${linePath ? `<path d="${linePath}" fill="none" stroke="var(--accent-primary)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />` : ''}
+            
+            <!-- Points and Text Labels -->
+            ${points.map((p, i) => `
+                <!-- Circle Dot -->
+                <circle cx="${p.x}" cy="${p.y}" r="5" fill="var(--bg-secondary)" stroke="var(--accent-primary)" stroke-width="2.5" />
+                
+                <!-- Rate Text above dot -->
+                <text x="${p.x}" y="${p.y - 10}" fill="var(--text-primary)" font-size="10" font-weight="600" text-anchor="middle" font-family="inherit">${formatCurrency(p.rate)}</text>
+                
+                <!-- Month Label below X axis -->
+                <text x="${p.x}" y="${height - 15}" fill="var(--text-secondary)" font-size="10.5" text-anchor="middle" font-family="inherit">${p.label}</text>
+            `).join('')}
+        </svg>
+    `;
+
+    container.innerHTML = svgContent;
+}
+
+function formatCurrencyShort(value) {
+    if (value >= 10000) {
+        return (value / 10000).toFixed(1).replace('.0', '') + '만';
+    }
+    return value.toLocaleString();
 }
 
