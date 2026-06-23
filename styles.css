@@ -2877,8 +2877,8 @@ form {
     border-radius: var(--border-radius-md);
     overflow: visible;
     background: var(--bg-primary);
-    min-height: 400px;
     position: relative;
+    align-content: start;
 }
 
 .calendar-header-cell {
@@ -3009,7 +3009,7 @@ form {
 @media (max-width: 768px) {
     .weekly-calendar-grid {
         grid-template-columns: 40px repeat(7, 1fr);
-        min-height: 300px;
+        align-content: start;
     }
 
     .calendar-header-cell {
