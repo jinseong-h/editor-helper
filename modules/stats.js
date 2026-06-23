@@ -1218,6 +1218,10 @@ function handleCalendarMouseOut(e) {
 }
 
 function initWeeklyCalendar() {
+    document.getElementById('week-today-btn')?.addEventListener('click', () => {
+        currentWeekOffset = 0;
+        renderWeeklyCalendar();
+    });
     document.getElementById('week-prev-btn')?.addEventListener('click', () => {
         currentWeekOffset--;
         renderWeeklyCalendar();

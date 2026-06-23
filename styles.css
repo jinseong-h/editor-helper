@@ -912,7 +912,7 @@ body {
 .stopwatch-display {
     font-size: var(--font-size-2xl);
     font-weight: 600;
-    font-family: 'Pretendard Variable', 'Pretendard', var(--font-family);
+    font-family: var(--font-family);
     text-align: center;
     margin-bottom: var(--space-sm);
     color: var(--text-primary);
@@ -2349,7 +2349,7 @@ form {
 
     .print-invoice {
         padding: 20mm;
-        font-family: 'Noto Sans KR', sans-serif;
+        font-family: var(--font-family);
     }
 
     .print-invoice h1 {
