@@ -10,6 +10,7 @@ const STORAGE_KEYS = {
     TASKS: 'editor_app_tasks',
     BANK_INFO: 'editor_app_bank_info',
     DAILY_LOGS: 'editor_app_daily_logs',
+    WORK_SESSIONS: 'editor_app_work_sessions',
     THEME: 'editor_app_theme',
     PIP_TIMER: 'editor_app_pip_timer',
     INVOICE_ROUNDING: 'editor_app_invoice_rounding'
@@ -19,6 +20,7 @@ const STORAGE_KEYS = {
 let channels = [];
 let tasks = [];
 let dailyLogs = {}; // YYYY-MM-DD: seconds
+let workSessions = []; // [{id, taskId, taskName, channelName, startTime, endTime}]
 
 // LocalStorage에서 데이터 로드
 function loadData() {
@@ -26,10 +28,12 @@ function loadData() {
         const savedChannels = localStorage.getItem(STORAGE_KEYS.CHANNELS);
         const savedTasks = localStorage.getItem(STORAGE_KEYS.TASKS);
         const savedDailyLogs = localStorage.getItem(STORAGE_KEYS.DAILY_LOGS);
+        const savedWorkSessions = localStorage.getItem(STORAGE_KEYS.WORK_SESSIONS);
 
         channels = savedChannels ? JSON.parse(savedChannels) : [];
         tasks = savedTasks ? JSON.parse(savedTasks) : [];
         dailyLogs = savedDailyLogs ? JSON.parse(savedDailyLogs) : {};
+        workSessions = savedWorkSessions ? JSON.parse(savedWorkSessions) : [];
 
         // 진행 중이던 스탑워치 복원
         tasks.forEach(task => {
@@ -54,6 +58,7 @@ function saveData() {
         localStorage.setItem(STORAGE_KEYS.CHANNELS, JSON.stringify(channels));
         localStorage.setItem(STORAGE_KEYS.TASKS, JSON.stringify(tasks));
         localStorage.setItem(STORAGE_KEYS.DAILY_LOGS, JSON.stringify(dailyLogs));
+        localStorage.setItem(STORAGE_KEYS.WORK_SESSIONS, JSON.stringify(workSessions));
     } catch (e) {
         console.error('데이터 저장 실패:', e);
         showToast('데이터 저장에 실패했습니다.', 'error');
@@ -142,41 +147,179 @@ function initGuideModal() {
 // ===================================
 // Navigation
 // ===================================
-function initNavigation() {
+let currentWeekOffset = 0; // 주간 캘린더 현재 주 오프셋
+
+function navigateToPage(targetPage) {
     const navTabs = document.querySelectorAll('.nav-tab');
     const pages = document.querySelectorAll('.page');
 
+    // 탭 활성화 (customers, settings는 탭에 없으므로 전부 비활성)
+    navTabs.forEach(t => t.classList.remove('active'));
+    const matchingTab = document.querySelector(`.nav-tab[data-page="${targetPage}"]`);
+    if (matchingTab) matchingTab.classList.add('active');
+
+    // 페이지 전환
+    pages.forEach(page => {
+        page.classList.remove('active');
+        if (page.id === `${targetPage}-page`) {
+            page.classList.add('active');
+        }
+    });
+
+    // 페이지별 초기화
+    if (targetPage === 'stats') {
+        updateSummary();
+        generateTimeLogMonthOptions();
+        renderTimeLog();
+        renderWeeklyCalendar();
+    } else if (targetPage === 'tasks') {
+        renderTasks();
+    } else if (targetPage === 'customers') {
+        renderChannels();
+    } else if (targetPage === 'settings') {
+        // settings page doesn't need special init
+    } else if (targetPage === 'invoice') {
+        updateInvoiceChannelSelect();
+        updateInvoicePreview();
+    }
+}
+
+function initNavigation() {
+    const navTabs = document.querySelectorAll('.nav-tab');
+
     navTabs.forEach(tab => {
         tab.addEventListener('click', () => {
-            const targetPage = tab.dataset.page;
+            navigateToPage(tab.dataset.page);
+        });
+    });
 
-            // 탭 활성화
-            navTabs.forEach(t => t.classList.remove('active'));
+    // 통계 서브탭 전환
+    const subTabs = document.querySelectorAll('.stats-sub-tab');
+    subTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const targetSub = tab.dataset.sub;
+
+            subTabs.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
 
-            // 페이지 전환
-            pages.forEach(page => {
-                page.classList.remove('active');
-                if (page.id === `${targetPage}-page`) {
-                    page.classList.add('active');
-                }
+            document.querySelectorAll('.stats-sub-section').forEach(sec => {
+                sec.classList.remove('active');
             });
 
-            // 페이지별 초기화
-            if (targetPage === 'summary') {
+            if (targetSub === 'summary') {
+                document.getElementById('stats-summary-section')?.classList.add('active');
                 updateSummary();
-            } else if (targetPage === 'tasks') {
-                renderTasks();
-            } else if (targetPage === 'settings') {
-                renderChannels();
-            } else if (targetPage === 'invoice') {
-                updateInvoiceChannelSelect();
-                updateInvoicePreview();
-            } else if (targetPage === 'time-log') {
+            } else if (targetSub === 'time-log') {
+                document.getElementById('stats-timelog-section')?.classList.add('active');
+                generateTimeLogMonthOptions();
                 renderTimeLog();
+                renderWeeklyCalendar();
             }
         });
     });
+
+    // 프로필 드롭다운 메뉴
+    initProfileDropdown();
+}
+
+// ===================================
+// Profile Dropdown Menu
+// ===================================
+function initProfileDropdown() {
+    const profileBtn = document.getElementById('nav-profile-btn');
+    const dropdown = document.getElementById('profile-dropdown');
+
+    if (!profileBtn || !dropdown) return;
+
+    profileBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle('show');
+        updateProfileDropdownInfo();
+    });
+
+    // 바깥 클릭 시 닫기
+    document.addEventListener('click', (e) => {
+        if (!dropdown.contains(e.target) && !profileBtn.contains(e.target)) {
+            dropdown.classList.remove('show');
+        }
+    });
+
+    // 고객 관리
+    document.getElementById('menu-customers')?.addEventListener('click', () => {
+        dropdown.classList.remove('show');
+        navigateToPage('customers');
+    });
+
+    // 설정
+    document.getElementById('menu-settings')?.addEventListener('click', () => {
+        dropdown.classList.remove('show');
+        navigateToPage('settings');
+    });
+
+    // 로그아웃
+    document.getElementById('menu-logout')?.addEventListener('click', () => {
+        dropdown.classList.remove('show');
+        if (confirm('로그아웃하시겠습니까?\n로그아웃하면 로그인 화면으로 돌아갑니다.')) {
+            firebase.auth().signOut().then(() => {
+                localStorage.removeItem('editor_app_updated_at');
+                localStorage.removeItem(STORAGE_KEYS.CHANNELS);
+                localStorage.removeItem(STORAGE_KEYS.TASKS);
+                localStorage.removeItem(STORAGE_KEYS.DAILY_LOGS);
+                localStorage.removeItem(STORAGE_KEYS.BANK_INFO);
+                localStorage.removeItem(STORAGE_KEYS.WORK_SESSIONS);
+
+                channels = [];
+                tasks = [];
+                dailyLogs = {};
+                workSessions = [];
+
+                showToast('로그아웃되었습니다.', 'success');
+                updateSyncStatus(false);
+                updateSyncModalView();
+                closeModal('sync-modal');
+
+                // 로그인 게이트 표시
+                document.getElementById('app-container').style.display = 'none';
+                document.getElementById('login-gate').style.display = 'flex';
+            }).catch(err => {
+                console.error('로그아웃 실패:', err);
+                showToast('로그아웃에 실패했습니다.', 'error');
+            });
+        }
+    });
+}
+
+function updateProfileDropdownInfo() {
+    const user = typeof firebaseApp !== 'undefined' && firebaseApp ? firebase.auth().currentUser : null;
+    const userSection = document.getElementById('profile-dropdown-user');
+    const divider = document.getElementById('profile-dropdown-divider');
+    const logoutBtn = document.getElementById('menu-logout');
+    const logoutDivider = document.getElementById('profile-dropdown-logout-divider');
+
+    if (user) {
+        if (userSection) {
+            userSection.style.display = 'flex';
+            const img = document.getElementById('dropdown-profile-img');
+            if (img && user.photoURL) {
+                img.src = user.photoURL;
+                img.style.display = 'block';
+            } else if (img) {
+                img.style.display = 'none';
+            }
+            const nameEl = document.getElementById('dropdown-user-name');
+            if (nameEl) nameEl.textContent = user.displayName || '사용자';
+            const emailEl = document.getElementById('dropdown-user-email');
+            if (emailEl) emailEl.textContent = user.email || '';
+        }
+        if (divider) divider.style.display = 'block';
+        if (logoutBtn) logoutBtn.style.display = 'flex';
+        if (logoutDivider) logoutDivider.style.display = 'block';
+    } else {
+        if (userSection) userSection.style.display = 'none';
+        if (divider) divider.style.display = 'none';
+        if (logoutBtn) logoutBtn.style.display = 'none';
+        if (logoutDivider) logoutDivider.style.display = 'none';
+    }
 }
 
 // ===================================
@@ -1018,6 +1161,18 @@ function stopStopwatch(taskId) {
 
         // 일별 로그 업데이트
         updateDailyLogs(task.lastStartTime, now);
+
+        // 작업 세션 기록 (주간 캘린더용)
+        const channel = channels.find(c => c.id === task.channelId);
+        workSessions.push({
+            id: generateId(),
+            taskId: task.id,
+            taskName: task.name,
+            channelName: channel ? channel.name : '(알 수 없음)',
+            channelId: task.channelId,
+            startTime: task.lastStartTime,
+            endTime: now
+        });
     }
 
     task.isRunning = false;
@@ -2011,6 +2166,7 @@ function exportData() {
         channels,
         tasks,
         dailyLogs,
+        workSessions,
         bankInfo: getBankInfo()
     };
 
@@ -2064,6 +2220,7 @@ function importData(mode) {
             channels = pendingImportData.channels || [];
             tasks = pendingImportData.tasks || [];
             dailyLogs = pendingImportData.dailyLogs || {};
+            workSessions = pendingImportData.workSessions || [];
 
             // version 2+: bankInfo 가져오기
             if (pendingImportData.bankInfo) {
@@ -2099,6 +2256,13 @@ function importData(mode) {
             });
 
             // 추가 모드에서 bankInfo는 덮어쓰지 않음 (기존 정보 유지)
+
+            // workSessions 병합
+            const importedSessions = (pendingImportData.workSessions || []).map(s => ({
+                ...s,
+                id: generateId()
+            }));
+            workSessions = [...workSessions, ...importedSessions];
         }
 
         saveData();
@@ -2276,6 +2440,200 @@ function renderTimeLog() {
 }
 
 // ===================================
+// Weekly Calendar (주간 작업 캘린더)
+// ===================================
+const SESSION_COLORS = ['color-0','color-1','color-2','color-3','color-4','color-5','color-6','color-7'];
+
+function getWeekDates(offset) {
+    const now = new Date();
+    const dayOfWeek = now.getDay(); // 0=Sun
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1) + (offset * 7));
+    monday.setHours(0, 0, 0, 0);
+
+    const dates = [];
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(monday);
+        d.setDate(monday.getDate() + i);
+        dates.push(d);
+    }
+    return dates;
+}
+
+function renderWeeklyCalendar() {
+    const grid = document.getElementById('weekly-calendar-grid');
+    const legend = document.getElementById('weekly-calendar-legend');
+    const label = document.getElementById('week-label');
+    if (!grid) return;
+
+    const weekDates = getWeekDates(currentWeekOffset);
+    const dayNames = ['월', '화', '수', '목', '금', '토', '일'];
+
+    // 라벨 업데이트
+    const startStr = `${weekDates[0].getMonth() + 1}/${weekDates[0].getDate()}`;
+    const endStr = `${weekDates[6].getMonth() + 1}/${weekDates[6].getDate()}`;
+    if (label) label.textContent = `${weekDates[0].getFullYear()}년 ${startStr} ~ ${endStr}`;
+
+    // 이 주에 해당하는 세션 필터
+    const weekStart = weekDates[0].getTime();
+    const weekEnd = new Date(weekDates[6]);
+    weekEnd.setHours(23, 59, 59, 999);
+    const weekEndTime = weekEnd.getTime();
+
+    const weekSessions = workSessions.filter(s => {
+        return s.endTime >= weekStart && s.startTime <= weekEndTime;
+    });
+
+    // 고객별 색상 매핑
+    const channelColorMap = {};
+    let colorIndex = 0;
+    weekSessions.forEach(s => {
+        if (!channelColorMap[s.channelId || s.channelName]) {
+            channelColorMap[s.channelId || s.channelName] = {
+                color: SESSION_COLORS[colorIndex % SESSION_COLORS.length],
+                name: s.channelName
+            };
+            colorIndex++;
+        }
+    });
+
+    // 표시할 시간 범위 계산 (세션이 있는 시간대만)
+    let minHour = 24, maxHour = 0;
+    weekSessions.forEach(s => {
+        const startD = new Date(s.startTime);
+        const endD = new Date(s.endTime);
+        minHour = Math.min(minHour, startD.getHours());
+        maxHour = Math.max(maxHour, endD.getHours() + 1);
+    });
+    if (minHour >= maxHour) {
+        minHour = 8;
+        maxHour = 22;
+    }
+    minHour = Math.max(0, minHour - 1);
+    maxHour = Math.min(24, maxHour + 1);
+    const totalHours = maxHour - minHour;
+
+    // 그리드 생성
+    let html = '';
+
+    // 헤더 행
+    html += '<div class="calendar-header-cell"></div>'; // 빈 코너
+    weekDates.forEach((d, i) => {
+        const isToday = new Date().toDateString() === d.toDateString();
+        html += `<div class="calendar-header-cell" ${isToday ? 'style="color: var(--accent-primary); font-weight: 700;"' : ''}>
+            ${dayNames[i]}
+            <span class="day-date">${d.getMonth() + 1}/${d.getDate()}</span>
+        </div>`;
+    });
+
+    // 시간 행
+    for (let h = minHour; h < maxHour; h++) {
+        html += `<div class="calendar-time-label">${String(h).padStart(2, '0')}:00</div>`;
+        for (let dayIdx = 0; dayIdx < 7; dayIdx++) {
+            html += `<div class="calendar-day-column" data-day="${dayIdx}" data-hour="${h}"></div>`;
+        }
+    }
+
+    grid.style.gridTemplateColumns = '50px repeat(7, 1fr)';
+    grid.style.gridTemplateRows = `auto repeat(${totalHours}, 40px)`;
+    grid.innerHTML = html;
+
+    if (weekSessions.length === 0) {
+        grid.innerHTML += '<div class="calendar-empty-msg">이 주에 기록된 작업 세션이 없습니다.<br><small>스톱워치를 사용하면 자동으로 기록됩니다.</small></div>';
+    }
+
+    // 세션 블록 배치
+    weekSessions.forEach(session => {
+        const startD = new Date(session.startTime);
+        const endD = new Date(session.endTime);
+
+        // 이 주의 각 날짜에 걸쳐 세션 분할
+        weekDates.forEach((dayDate, dayIdx) => {
+            const dayStart = new Date(dayDate);
+            dayStart.setHours(0, 0, 0, 0);
+            const dayEnd = new Date(dayDate);
+            dayEnd.setHours(23, 59, 59, 999);
+
+            // 이 날짜와 겹치는 부분
+            const overlapStart = Math.max(startD.getTime(), dayStart.getTime());
+            const overlapEnd = Math.min(endD.getTime(), dayEnd.getTime());
+
+            if (overlapStart >= overlapEnd) return;
+
+            const oStartDate = new Date(overlapStart);
+            const oEndDate = new Date(overlapEnd);
+
+            const startHour = oStartDate.getHours() + oStartDate.getMinutes() / 60;
+            const endHour = oEndDate.getHours() + oEndDate.getMinutes() / 60;
+
+            // 표시 범위 내의 위치 계산
+            const topFraction = (startHour - minHour) / totalHours;
+            const heightFraction = (endHour - startHour) / totalHours;
+
+            if (heightFraction <= 0) return;
+
+            // 해당 날짜 열의 첫 번째 셀 찾기
+            const cells = grid.querySelectorAll(`.calendar-day-column[data-day="${dayIdx}"]`);
+            if (cells.length === 0) return;
+
+            // 부모 컨테이너(grid) 기준으로 절대 위치 배치를 위해 첫 셀과 마지막 셀 사용
+            const firstCell = cells[0];
+            const lastCell = cells[cells.length - 1];
+
+            const columnTop = firstCell.offsetTop;
+            const columnHeight = (lastCell.offsetTop + lastCell.offsetHeight) - columnTop;
+
+            const blockTop = columnTop + (topFraction * columnHeight);
+            const blockHeight = Math.max(heightFraction * columnHeight, 4);
+
+            const colorClass = channelColorMap[session.channelId || session.channelName]?.color || 'color-0';
+
+            const startTimeStr = `${String(oStartDate.getHours()).padStart(2, '0')}:${String(oStartDate.getMinutes()).padStart(2, '0')}`;
+            const endTimeStr = `${String(oEndDate.getHours()).padStart(2, '0')}:${String(oEndDate.getMinutes()).padStart(2, '0')}`;
+
+            const block = document.createElement('div');
+            block.className = `calendar-session-block ${colorClass}`;
+            block.style.top = `${blockTop}px`;
+            block.style.left = `${firstCell.offsetLeft + 2}px`;
+            block.style.width = `${firstCell.offsetWidth - 4}px`;
+            block.style.height = `${blockHeight}px`;
+            block.title = `${session.channelName} - ${session.taskName}\n${startTimeStr} ~ ${endTimeStr}`;
+
+            if (blockHeight > 20) {
+                block.innerHTML = `<span class="session-task-name">${escapeHtml(session.taskName)}</span>
+                    <span class="session-time-range">${startTimeStr}~${endTimeStr}</span>`;
+            } else if (blockHeight > 10) {
+                block.innerHTML = `<span class="session-task-name">${escapeHtml(session.taskName)}</span>`;
+            }
+
+            grid.appendChild(block);
+        });
+    });
+
+    // 범례
+    if (legend) {
+        legend.innerHTML = Object.values(channelColorMap).map(info => {
+            const bgColor = getComputedStyle(document.createElement('div')).getPropertyValue('--accent-primary') || '#6366f1';
+            return `<div class="legend-item">
+                <div class="legend-color ${info.color}"></div>
+                <span>${escapeHtml(info.name)}</span>
+            </div>`;
+        }).join('');
+    }
+}
+
+function initWeeklyCalendar() {
+    document.getElementById('week-prev-btn')?.addEventListener('click', () => {
+        currentWeekOffset--;
+        renderWeeklyCalendar();
+    });
+    document.getElementById('week-next-btn')?.addEventListener('click', () => {
+        currentWeekOffset++;
+        renderWeeklyCalendar();
+    });
+}
+
+// ===================================
 // Utility Functions
 // ===================================
 function escapeHtml(text) {
@@ -2427,12 +2785,6 @@ function initCloudSync() {
         openModal('sync-modal');
     });
 
-    // 상단 탭바 프로필 버튼 클릭 → 동기화 모달 열기
-    document.getElementById('nav-profile-btn')?.addEventListener('click', () => {
-        updateSyncModalView();
-        openModal('sync-modal');
-    });
-
     // 로그인 게이트 버튼
     document.getElementById('login-gate-btn')?.addEventListener('click', () => {
         loginWithGoogle();
@@ -2454,44 +2806,29 @@ function initCloudSync() {
         }
     });
 
-    // 로그아웃
+    // 동기화 모달 내 로그아웃
     document.getElementById('sync-logout-btn')?.addEventListener('click', () => {
         if (confirm('로그아웃하시겠습니까?\n로그아웃하면 로그인 화면으로 돌아갑니다.')) {
             firebase.auth().signOut().then(() => {
-                // 저장된 클라우드 업데이트 시간 및 로컬 데이터 모두 초기화
                 localStorage.removeItem('editor_app_updated_at');
-                
-                // 계정 전환 시 데이터 잔류를 막기 위해 로컬 데이터 삭제
                 localStorage.removeItem(STORAGE_KEYS.CHANNELS);
                 localStorage.removeItem(STORAGE_KEYS.TASKS);
                 localStorage.removeItem(STORAGE_KEYS.DAILY_LOGS);
                 localStorage.removeItem(STORAGE_KEYS.BANK_INFO);
+                localStorage.removeItem(STORAGE_KEYS.WORK_SESSIONS);
                 
-                // 메모리 상의 데이터도 초기화
                 channels = [];
                 tasks = [];
                 dailyLogs = {};
-                if (typeof selectedTasks !== 'undefined') {
-                    selectedTasks.clear();
-                }
+                workSessions = [];
                 
-                // 화면 초기화
-                renderChannels();
-                renderTasks();
-                if (typeof updateSummary === 'function') {
-                    updateSummary();
-                }
-                
-                // 은행 정보 폼 초기화
-                const bankNameInput = document.getElementById('bank-name');
-                const accountNumberInput = document.getElementById('account-number');
-                const accountHolderInput = document.getElementById('account-holder');
-                
-                if (bankNameInput) bankNameInput.value = '';
-                if (accountNumberInput) accountNumberInput.value = '';
-                if (accountHolderInput) accountHolderInput.value = '';
-                
-                showToast('로그아웃 되었습니다.', 'success');
+                showToast('로그아웃되었습니다.', 'success');
+                updateSyncStatus(false);
+                updateSyncModalView();
+                closeModal('sync-modal');
+
+                document.getElementById('app-container').style.display = 'none';
+                document.getElementById('login-gate').style.display = 'flex';
             }).catch((error) => {
                 console.error('로그아웃 실패:', error);
             });
@@ -2586,6 +2923,7 @@ async function uploadToCloud(timestamp = Date.now()) {
             channels: channels || [],
             tasks: tasks || [],
             dailyLogs: dailyLogs || {},
+            workSessions: workSessions || [],
             bankInfo: getBankInfo(),
             pipTimerEnabled: isPipEnabled(),
             updatedAt: timestamp
@@ -2611,6 +2949,7 @@ function applyCloudData(cloudData) {
     channels = cloudData.channels || [];
     tasks = cloudData.tasks || [];
     dailyLogs = cloudData.dailyLogs || {};
+    workSessions = cloudData.workSessions || [];
 
     // 입금 정보도 클라우드에서 복원
     if (cloudData.bankInfo) {
@@ -2896,6 +3235,7 @@ function init() {
     initSummaryPage();
     initInvoicePage();
     initTimeLogPage();
+    initWeeklyCalendar();
     initDataManagement();
     initCloudSync();
     initLoginSlider();
