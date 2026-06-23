@@ -251,7 +251,7 @@ function generateMonthButtons() {
         const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
         months.push({
             value: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`,
-            label: `${date.getFullYear()}년 ${date.getMonth() + 1}월`
+            label: `${String(date.getFullYear()).slice(-2)}년 ${date.getMonth() + 1}월`
         });
     }
 

@@ -437,8 +437,11 @@
 
             <!-- 고객 관리 페이지 (프로필 메뉴에서 접근) -->
             <section id="customers-page" class="page">
-                <div class="page-header">
-                    <h1>고객 관리</h1>
+                <div class="page-header" style="flex-wrap: wrap; gap: var(--space-xs);">
+                    <div style="flex: 1; min-width: 200px;">
+                        <h1 style="margin-bottom: 2px;">고객 관리</h1>
+                        <p style="font-size: var(--font-size-xs); color: var(--text-muted); margin: 0; font-family: inherit;">더 이상 작업하지 않는 고객은 보관 처리할 수 있습니다.</p>
+                    </div>
                     <button class="btn btn-primary" id="add-channel-btn">
                         <span>+</span> 고객 추가
                     </button>

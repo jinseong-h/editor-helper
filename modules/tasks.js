@@ -113,8 +113,45 @@ function toggleArchiveChannel(id) {
     updateChannelSelects();
 }
 
+function getLastWorkDate(channelId) {
+    let latestTime = 0;
+
+    // 1. tasks 탐색
+    tasks.forEach(task => {
+        if (task.channelId === channelId) {
+            if (task.completedAt) {
+                latestTime = Math.max(latestTime, new Date(task.completedAt).getTime());
+            }
+            if (task.createdAt) {
+                latestTime = Math.max(latestTime, new Date(task.createdAt).getTime());
+            }
+            if (task.lastWorkedAt) {
+                latestTime = Math.max(latestTime, task.lastWorkedAt);
+            }
+        }
+    });
+
+    // 2. workSessions 탐색
+    workSessions.forEach(session => {
+        if (session.channelId === channelId && session.endTime) {
+            latestTime = Math.max(latestTime, session.endTime);
+        }
+    });
+
+    if (latestTime === 0) {
+        return '작업 기록 없음';
+    }
+
+    const d = new Date(latestTime);
+    const year = String(d.getFullYear()).slice(-2);
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}.${month}.${day}`;
+}
+
 function getChannelCardHTML(channel) {
     const isArchived = !!channel.isArchived;
+    const lastWorkDate = getLastWorkDate(channel.id);
     return `
         <div class="channel-card ${isArchived ? 'archived' : ''}">
             <div class="channel-info">
@@ -122,12 +159,15 @@ function getChannelCardHTML(channel) {
                     ${escapeHtml(channel.name)}
                     ${isArchived ? '<span class="archived-badge">보관됨</span>' : ''}
                 </h3>
+                <div class="channel-last-worked" style="font-size: var(--font-size-xs); color: var(--text-muted); margin-bottom: var(--space-sm); font-family: inherit;">
+                    마지막 작업일: <span style="font-weight: 500; color: var(--text-secondary);">${lastWorkDate}</span>
+                </div>
                 <div class="channel-rates">
                     <span class="rate-tag">롱폼: <span>${formatCurrency(channel.longformRate)}${channel.longformType === 'perMinute' ? '/분' : '/건'}</span></span>
                     <span class="rate-tag">숏폼: <span>${formatCurrency(channel.shortformRate)}/건</span></span>
                     <span class="rate-tag">썸네일: <span>${formatCurrency(channel.thumbnailRate)}/건</span></span>
                 </div>
-                ${channel.memo ? `<p class="channel-memo">${escapeHtml(channel.memo)}</p>` : ''}
+                ${channel.memo ? `<p class="channel-memo" style="margin-top: var(--space-xs);">${escapeHtml(channel.memo)}</p>` : ''}
             </div>
             <div class="channel-actions">
                 <button class="btn btn-sm btn-secondary" onclick="editChannel('${channel.id}')">편집</button>
