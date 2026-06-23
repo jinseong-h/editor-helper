@@ -4,6 +4,7 @@
 function initSummaryPage() {
     document.getElementById('summary-period')?.addEventListener('change', updateSummary);
     document.getElementById('summary-channel')?.addEventListener('change', updateSummary);
+    document.getElementById('exclude-archived-stats')?.addEventListener('change', updateSummary);
 
     // 월별 옵션 생성
     generatePeriodOptions();
@@ -88,6 +89,8 @@ function updateHourlyChart(filteredTasks) {
     const container = document.getElementById('hourly-chart');
     if (!container) return;
 
+    const excludeArchived = document.getElementById('exclude-archived-stats')?.checked ?? true;
+
     // 고객별 통계 계산
     const channelStats = {};
 
@@ -105,16 +108,36 @@ function updateHourlyChart(filteredTasks) {
     // 시급 계산 및 정렬
     const chartData = Object.entries(channelStats)
         .map(([channelId, stats]) => {
-            const channel = channels.find(c => c.id === channelId);
+            let name = '(삭제된 고객)';
+            let isArchived = false;
+
+            if (channelId === '__unassigned__') {
+                name = '고객 미지정';
+            } else if (channelId && channelId.startsWith('__custom__::')) {
+                name = channelId.replace('__custom__::', '');
+            } else {
+                const channel = channels.find(c => c.id === channelId);
+                if (channel) {
+                    name = channel.name;
+                    isArchived = !!channel.isArchived;
+                }
+            }
+
             const hourlyRate = stats.totalSeconds > 0
                 ? Math.floor(stats.totalRate / (stats.totalSeconds / 3600))
                 : 0;
+
             return {
-                name: channelId === '__unassigned__' ? '고객 미지정' : (channel ? channel.name : '(삭제된 고객)'),
+                name,
+                isArchived,
                 hourlyRate
             };
         })
-        .filter(d => d.hourlyRate > 0)
+        .filter(d => {
+            if (d.hourlyRate <= 0) return false;
+            if (excludeArchived && d.isArchived) return false;
+            return true;
+        })
         .sort((a, b) => b.hourlyRate - a.hourlyRate);
 
     if (chartData.length === 0) {
@@ -213,22 +236,7 @@ function initInvoicePage() {
 }
 
 function updateInvoiceChannelSelect() {
-    const select = document.getElementById('invoice-channel');
-    if (!select) return;
-
-    const currentValue = select.value;
-    select.innerHTML = '<option value="">고객 선택</option>';
-
-    channels.forEach(channel => {
-        const option = document.createElement('option');
-        option.value = channel.id;
-        option.textContent = channel.name;
-        select.appendChild(option);
-    });
-
-    if (currentValue && channels.some(c => c.id === currentValue)) {
-        select.value = currentValue;
-    }
+    updateChannelSelects();
 }
 
 function generateMonthButtons() {
@@ -307,11 +315,17 @@ function updateInvoicePreview() {
     if (!container) return;
 
     const channelId = document.getElementById('invoice-channel')?.value;
-    const channel = channels.find(c => c.id === channelId);
-
     if (!channelId) {
         container.innerHTML = '<p class="preview-placeholder">고객을 선택해주세요.</p>';
         return;
+    }
+
+    let channelName = '';
+    if (channelId.startsWith('__custom__::')) {
+        channelName = channelId.replace('__custom__::', '');
+    } else {
+        const channel = channels.find(c => c.id === channelId);
+        channelName = channel ? channel.name : '(삭제된 고객)';
     }
 
     if (!selectedInvoiceMonth && (!invoiceStartDate || !invoiceEndDate)) {
@@ -357,7 +371,7 @@ function updateInvoicePreview() {
             <div class="invoice-info">
                 <div class="invoice-info-item">
                     <span class="invoice-info-label">고객:</span>
-                    <span>${escapeHtml(channel.name)}</span>
+                    <span>${escapeHtml(channelName)}</span>
                 </div>
                 <div class="invoice-info-item">
                     <span class="invoice-info-label">기간:</span>
@@ -459,11 +473,21 @@ function formatFullDate(isoString) {
 
 function generateInvoicePDF() {
     const channelId = document.getElementById('invoice-channel')?.value;
-    const channel = channels.find(c => c.id === channelId);
-
-    if (!channelId || !channel) {
+    if (!channelId) {
         showToast('고객을 선택해주세요.', 'warning');
         return;
+    }
+
+    let channelName = '';
+    if (channelId.startsWith('__custom__::')) {
+        channelName = channelId.replace('__custom__::', '');
+    } else {
+        const channel = channels.find(c => c.id === channelId);
+        if (!channel) {
+            showToast('고객을 찾을 수 없습니다.', 'warning');
+            return;
+        }
+        channelName = channel.name;
     }
 
     if (!selectedInvoiceMonth && (!invoiceStartDate || !invoiceEndDate)) {
@@ -509,7 +533,7 @@ function generateInvoicePDF() {
         <html lang="ko">
         <head>
             <meta charset="UTF-8">
-            <title>작업내역서 - ${channel.name}</title>
+            <title>작업내역서 - ${channelName}</title>
             <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
             <style>
                 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -518,6 +542,7 @@ function generateInvoicePDF() {
                     padding: 40px;
                     color: #333;
                     background: white;
+                    line-height: 1.6;
                 }
                 h1 {
                     text-align: center;
@@ -597,7 +622,7 @@ function generateInvoicePDF() {
             <div class="info-section">
                 <div class="info-item">
                     <span class="info-label">고객:</span>
-                    <span>${escapeHtml(channel.name)}</span>
+                    <span>${escapeHtml(channelName)}</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">기간:</span>

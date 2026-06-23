@@ -258,7 +258,13 @@
                     </div>
 
                     <div class="chart-section">
-                        <h2>고객별 평균 시급 비교</h2>
+                        <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md);">
+                            <h2 style="margin-bottom: 0;">고객별 평균 시급 비교</h2>
+                            <label class="toggle-container" style="display: flex; align-items: center; gap: 8px; font-size: var(--font-size-sm); color: var(--text-secondary); cursor: pointer; font-family: inherit;">
+                                <input type="checkbox" id="exclude-archived-stats" checked style="cursor: pointer; width: 16px; height: 16px; accent-color: var(--accent-primary);">
+                                <span>보관된 고객 제외</span>
+                            </label>
+                        </div>
                         <div class="chart-container" id="hourly-chart">
                             <!-- 차트가 여기에 동적으로 그려짐 -->
                         </div>
@@ -521,6 +527,7 @@
                         <select id="task-channel" required>
                             <option value="">고객 선택</option>
                         </select>
+                        <input type="text" id="task-channel-custom" placeholder="고객명 직접 입력" style="display: none; margin-top: 8px; width: 100%; padding: var(--space-xs) var(--space-sm); border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); background: var(--bg-tertiary); color: var(--text-primary); font-family: inherit; font-size: var(--font-size-sm);">
                     </div>
                     <div class="form-group">
                         <label for="task-type">작업 종류 *</label>

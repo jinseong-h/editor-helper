@@ -41,6 +41,7 @@ function saveChannel() {
         return;
     }
 
+    const channel = channels.find(c => c.id === id);
     const channelData = {
         id: id || generateId(),
         name,
@@ -48,7 +49,8 @@ function saveChannel() {
         longformRate,
         shortformRate,
         thumbnailRate,
-        memo
+        memo,
+        isArchived: channel ? !!channel.isArchived : false
     };
 
     if (id) {
@@ -98,6 +100,19 @@ function deleteChannel(id) {
     showToast('고객이 삭제되었습니다.', 'success');
 }
 
+function toggleArchiveChannel(id) {
+    const channel = channels.find(c => c.id === id);
+    if (!channel) return;
+
+    channel.isArchived = !channel.isArchived;
+    const statusText = channel.isArchived ? '보관되었습니다.' : '보관 해제되었습니다.';
+    showToast(`${channel.name} 고객이 ${statusText}`, 'success');
+
+    saveData();
+    renderChannels();
+    updateChannelSelects();
+}
+
 function renderChannels() {
     const list = document.getElementById('channels-list');
     const emptyState = document.getElementById('empty-channels');
@@ -111,23 +126,32 @@ function renderChannels() {
     list.style.display = 'grid';
     emptyState.style.display = 'none';
 
-    list.innerHTML = channels.map(channel => `
-        <div class="channel-card">
-            <div class="channel-info">
-                <h3>${escapeHtml(channel.name)}</h3>
-                <div class="channel-rates">
-                    <span class="rate-tag">롱폼: <span>${formatCurrency(channel.longformRate)}${channel.longformType === 'perMinute' ? '/분' : '/건'}</span></span>
-                    <span class="rate-tag">숏폼: <span>${formatCurrency(channel.shortformRate)}/건</span></span>
-                    <span class="rate-tag">썸네일: <span>${formatCurrency(channel.thumbnailRate)}/건</span></span>
+    list.innerHTML = channels.map(channel => {
+        const isArchived = !!channel.isArchived;
+        return `
+            <div class="channel-card ${isArchived ? 'archived' : ''}">
+                <div class="channel-info">
+                    <h3>
+                        ${escapeHtml(channel.name)}
+                        ${isArchived ? '<span class="archived-badge">보관됨</span>' : ''}
+                    </h3>
+                    <div class="channel-rates">
+                        <span class="rate-tag">롱폼: <span>${formatCurrency(channel.longformRate)}${channel.longformType === 'perMinute' ? '/분' : '/건'}</span></span>
+                        <span class="rate-tag">숏폼: <span>${formatCurrency(channel.shortformRate)}/건</span></span>
+                        <span class="rate-tag">썸네일: <span>${formatCurrency(channel.thumbnailRate)}/건</span></span>
+                    </div>
+                    ${channel.memo ? `<p class="channel-memo">${escapeHtml(channel.memo)}</p>` : ''}
                 </div>
-                ${channel.memo ? `<p class="channel-memo">${escapeHtml(channel.memo)}</p>` : ''}
+                <div class="channel-actions">
+                    <button class="btn btn-sm btn-secondary" onclick="editChannel('${channel.id}')">편집</button>
+                    <button class="btn btn-sm ${isArchived ? 'btn-success' : 'btn-warning'}" onclick="toggleArchiveChannel('${channel.id}')">
+                        ${isArchived ? '보관 해제' : '보관'}
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteChannel('${channel.id}')">삭제</button>
+                </div>
             </div>
-            <div class="channel-actions">
-                <button class="btn btn-sm btn-secondary" onclick="editChannel('${channel.id}')">편집</button>
-                <button class="btn btn-sm btn-danger" onclick="deleteChannel('${channel.id}')">삭제</button>
-            </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 // ===================================
@@ -149,7 +173,23 @@ function initTaskManagement() {
     });
 
     // 고객/타입 변경 시 단가 자동 계산
-    document.getElementById('task-channel')?.addEventListener('change', updateRateHint);
+    document.getElementById('task-channel')?.addEventListener('change', (e) => {
+        const customInput = document.getElementById('task-channel-custom');
+        if (e.target.value === '__custom__') {
+            if (customInput) {
+                customInput.style.display = 'block';
+                customInput.required = true;
+                customInput.focus();
+            }
+        } else {
+            if (customInput) {
+                customInput.style.display = 'none';
+                customInput.required = false;
+                customInput.value = '';
+            }
+        }
+        updateRateHint();
+    });
     document.getElementById('task-type')?.addEventListener('change', updateRateHint);
     document.getElementById('task-video-minutes')?.addEventListener('input', updateRateHint);
     document.getElementById('task-video-seconds')?.addEventListener('input', updateRateHint);
@@ -193,6 +233,13 @@ function resetTaskForm() {
     document.getElementById('task-rate').removeAttribute('data-auto-calculated');
     document.getElementById('rate-hint').textContent = '';
 
+    const customInput = document.getElementById('task-channel-custom');
+    if (customInput) {
+        customInput.value = '';
+        customInput.style.display = 'none';
+        customInput.required = false;
+    }
+
     updateChannelSelects();
 }
 
@@ -206,6 +253,11 @@ function updateRateHint() {
 
     if (channelId === '__unassigned__') {
         rateHint.textContent = '고객 미지정 - 단가 직접 입력';
+        return;
+    }
+
+    if (channelId === '__custom__' || (channelId && channelId.startsWith('__custom__::'))) {
+        rateHint.textContent = '직접 입력 - 단가 직접 입력';
         return;
     }
 
@@ -256,7 +308,18 @@ function updateRateHint() {
 function saveTask() {
     const id = document.getElementById('task-id').value;
     const name = document.getElementById('task-name').value.trim();
-    const channelId = document.getElementById('task-channel').value;
+    let channelId = document.getElementById('task-channel').value;
+    const customChannelInput = document.getElementById('task-channel-custom');
+    
+    if (channelId === '__custom__') {
+        const customName = customChannelInput ? customChannelInput.value.trim() : '';
+        if (!customName) {
+            showToast('직접 입력할 고객명을 입력해주세요.', 'warning');
+            return;
+        }
+        channelId = `__custom__::${customName}`;
+    }
+
     const type = document.getElementById('task-type').value;
     const dueDate = document.getElementById('task-due-date').value;
     const videoMinutes = parseInt(document.getElementById('task-video-minutes').value) || 0;
@@ -317,17 +380,34 @@ function editTask(id) {
 
     document.getElementById('task-id').value = task.id;
     document.getElementById('task-name').value = task.name;
-    document.getElementById('task-channel').value = task.channelId;
     document.getElementById('task-type').value = task.type;
     document.getElementById('task-due-date').value = task.dueDate || '';
-    document.getElementById('task-video-minutes').value = task.videoMinutes || '0';
-    document.getElementById('task-video-seconds').value = task.videoSeconds || '0';
+    document.getElementById('task-video-minutes').value = task.videoDurationMinutes || '0';
+    document.getElementById('task-video-seconds').value = task.videoDurationSeconds || '0';
     document.getElementById('task-rate').value = task.rate ? task.rate.toLocaleString() : '';
 
     // 기존 작업을 수정하는 경우 수동 입력된 값으로 간주하여 자동 계산 덮어쓰기 방지
     document.getElementById('task-rate').removeAttribute('data-auto-calculated');
 
     updateChannelSelects();
+
+    const customInput = document.getElementById('task-channel-custom');
+    if (task.channelId && task.channelId.startsWith('__custom__::')) {
+        document.getElementById('task-channel').value = '__custom__';
+        if (customInput) {
+            customInput.value = task.channelId.replace('__custom__::', '');
+            customInput.style.display = 'block';
+            customInput.required = true;
+        }
+    } else {
+        document.getElementById('task-channel').value = task.channelId || '';
+        if (customInput) {
+            customInput.value = '';
+            customInput.style.display = 'none';
+            customInput.required = false;
+        }
+    }
+
     updateRateHint();
 
     document.getElementById('task-modal-title').textContent = '작업 수정';
@@ -395,22 +475,27 @@ function toggleTaskSettled(id) {
 }
 
 function updateChannelSelects() {
-    const selects = [
-        document.getElementById('task-channel'),
-        document.getElementById('filter-channel'),
-        document.getElementById('summary-channel')
+    const selectElements = [
+        { el: document.getElementById('task-channel'), isTaskSelect: true, defaultText: '-- 고객 선택 --' },
+        { el: document.getElementById('filter-channel'), isTaskSelect: false, defaultText: '모든 고객' },
+        { el: document.getElementById('summary-channel'), isTaskSelect: false, defaultText: '모든 고객' },
+        { el: document.getElementById('invoice-channel'), isTaskSelect: false, defaultText: '고객 선택' }
     ];
 
-    selects.forEach(select => {
+    selectElements.forEach(item => {
+        const select = item.el;
         if (!select) return;
 
         const currentValue = select.value;
-        const isTaskSelect = select.id === 'task-channel';
-        const isFilterSelect = !isTaskSelect;
+        const isTaskSelect = item.isTaskSelect;
 
-        select.innerHTML = isFilterSelect
-            ? '<option value="">모든 고객</option>'
-            : '<option value="">고객 선택</option>';
+        select.innerHTML = '';
+
+        // 기본 옵션
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = item.defaultText;
+        select.appendChild(defaultOption);
 
         // '고객 미지정' 옵션 추가
         const unassignedOption = document.createElement('option');
@@ -418,15 +503,50 @@ function updateChannelSelects() {
         unassignedOption.textContent = '고객 미지정';
         select.appendChild(unassignedOption);
 
+        // '직접 입력' 옵션 추가 (작업 추가/수정용 셀렉트일 때만)
+        if (isTaskSelect) {
+            const customOption = document.createElement('option');
+            customOption.value = '__custom__';
+            customOption.textContent = '✍️ 직접 입력 (신규 고객)';
+            select.appendChild(customOption);
+        }
+
+        // 등록된 고객들 추가
         channels.forEach(channel => {
+            // 작업 추가/수정용 셀렉트에서는 보관 처리된 고객 제외
+            if (isTaskSelect && channel.isArchived) {
+                return;
+            }
+
             const option = document.createElement('option');
             option.value = channel.id;
-            option.textContent = channel.name;
+            option.textContent = channel.isArchived ? `${channel.name} (보관됨)` : channel.name;
             select.appendChild(option);
         });
 
-        if (currentValue && (currentValue === '__unassigned__' || channels.some(c => c.id === currentValue))) {
-            select.value = currentValue;
+        // 직접 입력한 고객들을 필터/요약/인보이스 셀렉트에 동적으로 추가
+        if (!isTaskSelect) {
+            const customChannelIds = new Set();
+            tasks.forEach(t => {
+                if (t.channelId && t.channelId.startsWith('__custom__::')) {
+                    customChannelIds.add(t.channelId);
+                }
+            });
+            customChannelIds.forEach(customId => {
+                const name = customId.replace('__custom__::', '');
+                const option = document.createElement('option');
+                option.value = customId;
+                option.textContent = `${name} (직접 입력)`;
+                select.appendChild(option);
+            });
+        }
+
+        if (currentValue) {
+            if (isTaskSelect && (currentValue === '__custom__' || currentValue.startsWith('__custom__::'))) {
+                select.value = '__custom__';
+            } else if (currentValue === '__unassigned__' || channels.some(c => c.id === currentValue) || currentValue.startsWith('__custom__::')) {
+                select.value = currentValue;
+            }
         }
     });
 }
@@ -488,7 +608,14 @@ function getFilteredTasks() {
 
 function createTaskHTML(task) {
     const channel = channels.find(c => c.id === task.channelId);
-    const channelName = task.channelId === '__unassigned__' ? '고객 미지정' : (channel ? channel.name : '(삭제된 고객)');
+    let channelName = '고객 미지정';
+    if (task.channelId === '__unassigned__') {
+        channelName = '고객 미지정';
+    } else if (task.channelId && task.channelId.startsWith('__custom__::')) {
+        channelName = task.channelId.replace('__custom__::', '');
+    } else {
+        channelName = channel ? channel.name : '(삭제된 고객)';
+    }
     const typeLabels = {
         longform: '롱폼',
         shortform: '숏폼',
@@ -783,13 +910,20 @@ function stopStopwatch(taskId) {
         // 일별 로그 업데이트
         updateDailyLogs(task.lastStartTime, now);
 
-        // 작업 세션 기록 (주간 캘린더용)
-        const channel = channels.find(c => c.id === task.channelId);
+        let channelName = '(알 수 없음)';
+        if (task.channelId && task.channelId.startsWith('__custom__::')) {
+            channelName = task.channelId.replace('__custom__::', '');
+        } else {
+            const channel = channels.find(c => c.id === task.channelId);
+            if (channel) {
+                channelName = channel.name;
+            }
+        }
         workSessions.push({
             id: generateId(),
             taskId: task.id,
             taskName: task.name,
-            channelName: channel ? channel.name : '(알 수 없음)',
+            channelName,
             channelId: task.channelId,
             startTime: task.lastStartTime,
             endTime: now
@@ -990,8 +1124,15 @@ function updatePipTimerContent() {
     }
 
     container.innerHTML = runningTasks.map(task => {
-        const channel = channels.find(c => c.id === task.channelId);
-        const channelName = task.channelId === '__unassigned__' ? '고객 미지정' : (channel ? channel.name : '');
+        let channelName = '';
+        if (task.channelId === '__unassigned__') {
+            channelName = '고객 미지정';
+        } else if (task.channelId && task.channelId.startsWith('__custom__::')) {
+            channelName = task.channelId.replace('__custom__::', '');
+        } else {
+            const channel = channels.find(c => c.id === task.channelId);
+            channelName = channel ? channel.name : '';
+        }
         const elapsed = getTaskElapsedSeconds(task);
         const timeStr = formatTime(elapsed);
 

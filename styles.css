@@ -3112,3 +3112,30 @@ form {
     color: var(--accent-primary);
     font-weight: 600;
 }
+
+/* ===================================
+   보관된 고객 카드 및 배지 스타일
+   =================================== */
+.channel-card.archived {
+    opacity: 0.55;
+    border-color: rgba(255,255,255,0.1);
+    background: var(--bg-tertiary);
+    transition: opacity var(--transition-normal);
+}
+
+.channel-card.archived:hover {
+    opacity: 0.85;
+}
+
+.archived-badge {
+    display: inline-block;
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: var(--border-radius-sm);
+    margin-left: var(--space-xs);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    vertical-align: middle;
+}
