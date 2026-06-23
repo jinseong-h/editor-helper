@@ -290,9 +290,10 @@
                     <div class="weekly-calendar-section">
                         <h2>📅 주간 작업 캘린더</h2>
                         <div class="weekly-calendar-nav">
+                            <button class="week-nav-btn" id="week-today-btn">오늘</button>
                             <button class="week-nav-btn" id="week-prev-btn">◀</button>
-                            <span class="week-label" id="week-label"></span>
                             <button class="week-nav-btn" id="week-next-btn">▶</button>
+                            <span class="week-label" id="week-label"></span>
                         </div>
                         <div class="weekly-calendar-grid" id="weekly-calendar-grid">
                             <!-- JS로 동적 생성 -->
@@ -839,6 +840,11 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
+    <script src="modules/globals.js"></script>
+    <script src="modules/navigation.js"></script>
+    <script src="modules/tasks.js"></script>
+    <script src="modules/stats.js"></script>
+    <script src="modules/sync.js"></script>
     <script src="app.js?v=2"></script>
 </body>
 
