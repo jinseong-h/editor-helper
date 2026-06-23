@@ -295,6 +295,7 @@ function applyCloudData(cloudData) {
 
     // 로컬 저장 (클라우드 업로드는 건너뜀)
     originalSaveData();
+    updateAiSummaryData();
     renderChannels();
     renderTasks();
     updateChannelSelects();

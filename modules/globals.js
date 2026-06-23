@@ -59,9 +59,137 @@ function saveData() {
         localStorage.setItem(STORAGE_KEYS.TASKS, JSON.stringify(tasks));
         localStorage.setItem(STORAGE_KEYS.DAILY_LOGS, JSON.stringify(dailyLogs));
         localStorage.setItem(STORAGE_KEYS.WORK_SESSIONS, JSON.stringify(workSessions));
+        
+        // AI 도구용 요약 데이터 생성 및 DOM 주입
+        updateAiSummaryData();
     } catch (e) {
         console.error('데이터 저장 실패:', e);
         showToast('데이터 저장에 실패했습니다.', 'error');
+    }
+}
+
+// AI 도우미용 데이터 요약 & DOM 주입 함수
+function updateAiSummaryData() {
+    try {
+        // 1. 작업 시간 요약 데이터 (오늘, 어제, 이번 주 일별 작업시간)
+        const today = new Date();
+        const kstOffset = 9 * 60 * 60 * 1000;
+        const todayKst = new Date(today.getTime() + kstOffset);
+        const yesterdayKst = new Date(today.getTime() + kstOffset - (24 * 60 * 60 * 1000));
+
+        const getKstDateStr = (d) => `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;
+        
+        const todayStr = getKstDateStr(todayKst);
+        const yesterdayStr = getKstDateStr(yesterdayKst);
+
+        // 이번 주 구하기 (월요일~일요일)
+        const dayOfWeek = todayKst.getUTCDay(); // 0=일요일, 1=월요일...
+        const mondayDiff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+        const weekDates = [];
+        for (let i = 0; i < 7; i++) {
+            const tempDate = new Date(todayKst.getTime() + (mondayDiff + i) * 24 * 60 * 60 * 1000);
+            weekDates.push(getKstDateStr(tempDate));
+        }
+
+        const todaySeconds = dailyLogs[todayStr] || 0;
+        const yesterdaySeconds = dailyLogs[yesterdayStr] || 0;
+        let weekSeconds = 0;
+        const dailyList = [];
+
+        weekDates.forEach(dStr => {
+            const sec = dailyLogs[dStr] || 0;
+            weekSeconds += sec;
+            dailyList.push({
+                date: dStr,
+                work_minutes: Math.round(sec / 60)
+            });
+        });
+
+        const worktimeSummary = {
+            status: "ok",
+            timezone: "Asia/Seoul",
+            range: {
+                start: weekDates[0],
+                end: weekDates[6]
+            },
+            today: {
+                date: todayStr,
+                work_minutes: Math.round(todaySeconds / 60),
+                work_hours: parseFloat((todaySeconds / 3600).toFixed(1))
+            },
+            yesterday: {
+                date: yesterdayStr,
+                work_minutes: Math.round(yesterdaySeconds / 60),
+                work_hours: parseFloat((yesterdaySeconds / 3600).toFixed(1))
+            },
+            week: {
+                total_minutes: Math.round(weekSeconds / 60),
+                total_hours: parseFloat((weekSeconds / 3600).toFixed(1))
+            },
+            daily: dailyList,
+            source_updated_at: new Date().toISOString()
+        };
+
+        // DOM 주입: #ai-worktime-summary
+        let summaryScript = document.getElementById('ai-worktime-summary');
+        if (!summaryScript) {
+            summaryScript = document.createElement('script');
+            summaryScript.id = 'ai-worktime-summary';
+            summaryScript.type = 'application/json';
+            document.body.appendChild(summaryScript);
+        }
+        summaryScript.textContent = JSON.stringify(worktimeSummary, null, 2);
+
+        // 2. 미완료 작업 목록 데이터
+        const unfinishedJobs = tasks.filter(t => !t.isCompleted).map(t => {
+            const channel = channels.find(c => c.id === t.channelId);
+            return {
+                id: t.id,
+                title: t.name,
+                channel_name: channel ? channel.name : '',
+                status: "unfinished",
+                deadline: t.dueDate || ""
+            };
+        });
+
+        const unfinishedSummary = {
+            visible_unfinished_count: unfinishedJobs.length,
+            jobs: unfinishedJobs
+        };
+
+        // DOM 주입: #ai-unfinished-jobs
+        let unfinishedScript = document.getElementById('ai-unfinished-jobs');
+        if (!unfinishedScript) {
+            unfinishedScript = document.createElement('script');
+            unfinishedScript.id = 'ai-unfinished-jobs';
+            unfinishedScript.type = 'application/json';
+            document.body.appendChild(unfinishedScript);
+        }
+        unfinishedScript.textContent = JSON.stringify(unfinishedSummary, null, 2);
+
+        // 3. 최근 7일 편집 목표 수행률 데이터 (adherence check 용도)
+        const adherenceData = {};
+        weekDates.forEach(dStr => {
+            const sec = dailyLogs[dStr] || 0;
+            // 해당 일에 완료된 작업 중 예정된 시간이나 계획 등 비교용 기초 정보 추가
+            adherenceData[dStr] = {
+                date: dStr,
+                actual_minutes: Math.round(sec / 60)
+            };
+        });
+
+        // DOM 주입: #ai-adherence-editing
+        let adherenceScript = document.getElementById('ai-adherence-editing');
+        if (!adherenceScript) {
+            adherenceScript = document.createElement('script');
+            adherenceScript.id = 'ai-adherence-editing';
+            adherenceScript.type = 'application/json';
+            document.body.appendChild(adherenceScript);
+        }
+        adherenceScript.textContent = JSON.stringify(adherenceData, null, 2);
+
+    } catch (e) {
+        console.error('AI 요약 데이터 업데이트 실패:', e);
     }
 }
 
