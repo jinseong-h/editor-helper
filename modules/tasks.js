@@ -113,6 +113,33 @@ function toggleArchiveChannel(id) {
     updateChannelSelects();
 }
 
+function getChannelCardHTML(channel) {
+    const isArchived = !!channel.isArchived;
+    return `
+        <div class="channel-card ${isArchived ? 'archived' : ''}">
+            <div class="channel-info">
+                <h3>
+                    ${escapeHtml(channel.name)}
+                    ${isArchived ? '<span class="archived-badge">보관됨</span>' : ''}
+                </h3>
+                <div class="channel-rates">
+                    <span class="rate-tag">롱폼: <span>${formatCurrency(channel.longformRate)}${channel.longformType === 'perMinute' ? '/분' : '/건'}</span></span>
+                    <span class="rate-tag">숏폼: <span>${formatCurrency(channel.shortformRate)}/건</span></span>
+                    <span class="rate-tag">썸네일: <span>${formatCurrency(channel.thumbnailRate)}/건</span></span>
+                </div>
+                ${channel.memo ? `<p class="channel-memo">${escapeHtml(channel.memo)}</p>` : ''}
+            </div>
+            <div class="channel-actions">
+                <button class="btn btn-sm btn-secondary" onclick="editChannel('${channel.id}')">편집</button>
+                <button class="btn btn-sm ${isArchived ? 'btn-success' : 'btn-warning'}" onclick="toggleArchiveChannel('${channel.id}')">
+                    ${isArchived ? '보관 해제' : '보관'}
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="deleteChannel('${channel.id}')">삭제</button>
+            </div>
+        </div>
+    `;
+}
+
 function renderChannels() {
     const list = document.getElementById('channels-list');
     const emptyState = document.getElementById('empty-channels');
@@ -126,32 +153,22 @@ function renderChannels() {
     list.style.display = 'grid';
     emptyState.style.display = 'none';
 
-    list.innerHTML = channels.map(channel => {
-        const isArchived = !!channel.isArchived;
-        return `
-            <div class="channel-card ${isArchived ? 'archived' : ''}">
-                <div class="channel-info">
-                    <h3>
-                        ${escapeHtml(channel.name)}
-                        ${isArchived ? '<span class="archived-badge">보관됨</span>' : ''}
-                    </h3>
-                    <div class="channel-rates">
-                        <span class="rate-tag">롱폼: <span>${formatCurrency(channel.longformRate)}${channel.longformType === 'perMinute' ? '/분' : '/건'}</span></span>
-                        <span class="rate-tag">숏폼: <span>${formatCurrency(channel.shortformRate)}/건</span></span>
-                        <span class="rate-tag">썸네일: <span>${formatCurrency(channel.thumbnailRate)}/건</span></span>
-                    </div>
-                    ${channel.memo ? `<p class="channel-memo">${escapeHtml(channel.memo)}</p>` : ''}
-                </div>
-                <div class="channel-actions">
-                    <button class="btn btn-sm btn-secondary" onclick="editChannel('${channel.id}')">편집</button>
-                    <button class="btn btn-sm ${isArchived ? 'btn-success' : 'btn-warning'}" onclick="toggleArchiveChannel('${channel.id}')">
-                        ${isArchived ? '보관 해제' : '보관'}
-                    </button>
-                    <button class="btn btn-sm btn-danger" onclick="deleteChannel('${channel.id}')">삭제</button>
-                </div>
+    const activeChannels = channels.filter(c => !c.isArchived);
+    const archivedChannels = channels.filter(c => !!c.isArchived);
+
+    const activeHtml = activeChannels.map(channel => getChannelCardHTML(channel)).join('');
+    
+    let archivedHtml = '';
+    if (archivedChannels.length > 0) {
+        archivedHtml = `
+            <div class="archive-section-title" style="grid-column: 1 / -1; margin-top: var(--space-lg); margin-bottom: var(--space-xs); font-size: 0.95rem; font-weight: 600; color: var(--text-secondary); border-top: 1px dashed var(--border-color); padding-top: var(--space-md); display: flex; align-items: center; gap: 8px;">
+                <span>📁 보관된 고객 목록 (${archivedChannels.length})</span>
             </div>
+            ${archivedChannels.map(channel => getChannelCardHTML(channel)).join('')}
         `;
-    }).join('');
+    }
+
+    list.innerHTML = activeHtml + archivedHtml;
 }
 
 // ===================================
