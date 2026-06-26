@@ -954,6 +954,36 @@ function updateDailyLogs(startTime, endTime) {
     }
 }
 
+function removeDailyLogs(startTime, endTime) {
+    let current = new Date(startTime);
+    const end = new Date(endTime);
+
+    while (current < end) {
+        const year = current.getFullYear();
+        const month = String(current.getMonth() + 1).padStart(2, '0');
+        const day = String(current.getDate()).padStart(2, '0');
+        const dateKey = `${year}-${month}-${day}`;
+
+        // 다음 날 자정
+        const nextDay = new Date(year, current.getMonth(), current.getDate() + 1);
+
+        // 현재 날짜의 끝 지점 (다음 날 자정 또는 종료 시간)
+        const limit = nextDay < end ? nextDay : end;
+
+        // 해당 날짜의 작업 시간 (초 단위)
+        const seconds = Math.floor((limit - current) / 1000);
+
+        if (seconds > 0) {
+            dailyLogs[dateKey] = Math.max(0, (dailyLogs[dateKey] || 0) - seconds);
+            if (dailyLogs[dateKey] === 0) {
+                delete dailyLogs[dateKey];
+            }
+        }
+
+        current = nextDay;
+    }
+}
+
 function stopStopwatch(taskId) {
     const task = tasks.find(t => t.id === taskId);
     if (!task || !task.isRunning) return;

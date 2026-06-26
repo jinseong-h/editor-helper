@@ -1153,6 +1153,8 @@ function renderWeeklyCalendar() {
             block.style.left = `${firstCell.offsetLeft + 2}px`;
             block.style.width = `${firstCell.offsetWidth - 4}px`;
             block.style.height = `${blockHeight}px`;
+            block.style.cursor = 'pointer';
+            block.setAttribute('data-session-id', session.id);
             block.setAttribute('data-channel', session.channelName || '');
             block.setAttribute('data-task', session.taskName || '');
             block.setAttribute('data-time', `${startTimeStr} ~ ${endTimeStr}`);
@@ -1264,7 +1266,150 @@ function initWeeklyCalendar() {
         grid.addEventListener('mouseover', handleCalendarMouseOver);
         grid.addEventListener('mousemove', handleCalendarMouseMove);
         grid.addEventListener('mouseout', handleCalendarMouseOut);
+        grid.addEventListener('click', handleCalendarClick);
     }
+
+    initSessionEditModal();
+}
+
+function handleCalendarClick(e) {
+    const block = e.target.closest('.calendar-session-block');
+    if (!block) return;
+
+    const sessionId = block.getAttribute('data-session-id');
+    if (!sessionId) return;
+
+    openSessionEditModal(sessionId);
+}
+
+function openSessionEditModal(sessionId) {
+    const session = workSessions.find(s => s.id === sessionId);
+    if (!session) return;
+
+    document.getElementById('session-edit-id').value = sessionId;
+    document.getElementById('session-edit-info').textContent = `${session.channelName} / ${session.taskName}`;
+
+    const startD = new Date(session.startTime);
+    const endD = new Date(session.endTime);
+
+    // Format local date YYYY-MM-DD
+    const dateStr = startD.getFullYear() + '-' + 
+                    String(startD.getMonth() + 1).padStart(2, '0') + '-' + 
+                    String(startD.getDate()).padStart(2, '0');
+
+    // Format local time HH:MM:SS
+    const startTimeStr = String(startD.getHours()).padStart(2, '0') + ':' + 
+                         String(startD.getMinutes()).padStart(2, '0') + ':' + 
+                         String(startD.getSeconds()).padStart(2, '0');
+    
+    const endTimeStr = String(endD.getHours()).padStart(2, '0') + ':' + 
+                       String(endD.getMinutes()).padStart(2, '0') + ':' + 
+                       String(endD.getSeconds()).padStart(2, '0');
+
+    document.getElementById('session-edit-date').value = dateStr;
+    document.getElementById('session-edit-start-time').value = startTimeStr;
+    document.getElementById('session-edit-end-time').value = endTimeStr;
+
+    openModal('session-edit-modal');
+}
+
+function initSessionEditModal() {
+    const form = document.getElementById('session-edit-form');
+    if (!form) return;
+
+    // Close button
+    document.getElementById('session-edit-modal-close')?.addEventListener('click', () => {
+        closeModal('session-edit-modal');
+    });
+
+    // Cancel button
+    document.getElementById('session-edit-cancel')?.addEventListener('click', () => {
+        closeModal('session-edit-modal');
+    });
+
+    // Submit handler
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const sessionId = document.getElementById('session-edit-id').value;
+        const session = workSessions.find(s => s.id === sessionId);
+        if (!session) return;
+
+        const dateVal = document.getElementById('session-edit-date').value;
+        const startTimeVal = document.getElementById('session-edit-start-time').value;
+        const endTimeVal = document.getElementById('session-edit-end-time').value;
+
+        // Parse date and time in local timezone
+        const startTimestamp = new Date(`${dateVal}T${startTimeVal}`).getTime();
+        const endTimestamp = new Date(`${dateVal}T${endTimeVal}`).getTime();
+
+        if (isNaN(startTimestamp) || isNaN(endTimestamp)) {
+            showToast('올바른 날짜와 시간을 입력해주세요.', 'warning');
+            return;
+        }
+
+        if (startTimestamp >= endTimestamp) {
+            showToast('종료 시간은 시작 시간보다 이후여야 합니다.', 'warning');
+            return;
+        }
+
+        const oldDuration = Math.floor((session.endTime - session.startTime) / 1000);
+        const newDuration = Math.floor((endTimestamp - startTimestamp) / 1000);
+        const durationDiff = newDuration - oldDuration;
+
+        // 1. Task 시간 업데이트
+        const task = tasks.find(t => t.id === session.taskId);
+        if (task) {
+            task.elapsedSeconds = Math.max(0, (task.elapsedSeconds || 0) + durationDiff);
+        }
+
+        // 2. dailyLogs 업데이트
+        removeDailyLogs(session.startTime, session.endTime);
+        updateDailyLogs(startTimestamp, endTimestamp);
+
+        // 3. session 업데이트
+        session.startTime = startTimestamp;
+        session.endTime = endTimestamp;
+
+        saveData();
+        renderTasks();
+        renderWeeklyCalendar();
+        updateSummary();
+        renderTimeLog();
+        closeModal('session-edit-modal');
+        showToast('작업 시간이 수정되었습니다.', 'success');
+    });
+
+    // Delete handler
+    document.getElementById('session-edit-delete')?.addEventListener('click', () => {
+        const sessionId = document.getElementById('session-edit-id').value;
+        const session = workSessions.find(s => s.id === sessionId);
+        if (!session) return;
+
+        if (!confirm('정말 이 작업 세션 기록을 삭제하시겠습니까?\n해당 세션만큼의 시간이 총 작업 시간에서 차감됩니다.')) return;
+
+        const duration = Math.floor((session.endTime - session.startTime) / 1000);
+
+        // 1. Task 시간 업데이트
+        const task = tasks.find(t => t.id === session.taskId);
+        if (task) {
+            task.elapsedSeconds = Math.max(0, (task.elapsedSeconds || 0) - duration);
+        }
+
+        // 2. dailyLogs 업데이트
+        removeDailyLogs(session.startTime, session.endTime);
+
+        // 3. session 제거
+        workSessions = workSessions.filter(s => s.id !== sessionId);
+
+        saveData();
+        renderTasks();
+        renderWeeklyCalendar();
+        updateSummary();
+        renderTimeLog();
+        closeModal('session-edit-modal');
+        showToast('작업 세션 기록이 삭제되었습니다.', 'success');
+    });
 }
 
 function updateMonthlyTrendChart(filteredTasks) {

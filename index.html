@@ -702,7 +702,51 @@
                 </div>
             </form>
         </div>
+    <!-- 시간 수정 모달 끝 -->
+
+    <!-- 작업 세션 시간 수정 모달 -->
+    <div class="modal" id="session-edit-modal">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2>작업 세션 시간 수정</h2>
+                <button class="modal-close" id="session-edit-modal-close">&times;</button>
+            </div>
+            <form id="session-edit-form">
+                <input type="hidden" id="session-edit-id">
+                
+                <div class="form-group">
+                    <label>고객 / 작업명</label>
+                    <div id="session-edit-info" style="font-size: var(--font-size-sm); color: var(--text-secondary); font-weight: 500; padding: var(--space-xs) 0; font-family: inherit;"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="session-edit-date">작업 날짜</label>
+                    <input type="date" id="session-edit-date" required class="select-input" style="width: 100%;">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="session-edit-start-time">시작 시간</label>
+                        <input type="time" id="session-edit-start-time" step="1" required class="select-input" style="width: 100%;">
+                    </div>
+                    <div class="form-group">
+                        <label for="session-edit-end-time">종료 시간</label>
+                        <input type="time" id="session-edit-end-time" step="1" required class="select-input" style="width: 100%;">
+                    </div>
+                </div>
+
+                <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <button type="button" class="btn btn-danger" id="session-edit-delete" style="padding: var(--space-xs) var(--space-sm); font-size: var(--font-size-xs);">세션 삭제</button>
+                    <div style="display: flex; gap: var(--space-xs);">
+                        <button type="button" class="btn btn-secondary" id="session-edit-cancel">취소</button>
+                        <button type="submit" class="btn btn-primary">저장</button>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
+
 
     <!-- 클라우드 동기화 모달 -->
     <div class="modal" id="sync-modal">
