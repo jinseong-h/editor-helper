@@ -267,7 +267,10 @@ function applyCloudData(cloudData) {
     channels = cloudData.channels || [];
     tasks = cloudData.tasks || [];
     dailyLogs = cloudData.dailyLogs || {};
-    workSessions = cloudData.workSessions || [];
+    workSessions = (cloudData.workSessions || []).map(s => {
+        if (!s.id) s.id = generateId();
+        return s;
+    });
 
     // 입금 정보도 클라우드에서 복원
     if (cloudData.bankInfo) {

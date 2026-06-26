@@ -764,7 +764,10 @@ function importData(mode) {
             channels = pendingImportData.channels || [];
             tasks = pendingImportData.tasks || [];
             dailyLogs = pendingImportData.dailyLogs || {};
-            workSessions = pendingImportData.workSessions || [];
+            workSessions = (pendingImportData.workSessions || []).map(s => {
+                if (!s.id) s.id = generateId();
+                return s;
+            });
 
             // version 2+: bankInfo 가져오기
             if (pendingImportData.bankInfo) {

@@ -35,6 +35,15 @@ function loadData() {
         dailyLogs = savedDailyLogs ? JSON.parse(savedDailyLogs) : {};
         workSessions = savedWorkSessions ? JSON.parse(savedWorkSessions) : [];
 
+        // Ensure every session has a unique ID (migration for older sessions)
+        let sessionsUpdated = false;
+        workSessions.forEach(session => {
+            if (!session.id) {
+                session.id = generateId();
+                sessionsUpdated = true;
+            }
+        });
+
         // 진행 중이던 스탑워치 복원
         tasks.forEach(task => {
             if (task.isRunning && task.lastStartTime) {
