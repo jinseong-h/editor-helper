@@ -162,48 +162,68 @@
         <main class="main-content">
             <!-- 작업 목록 페이지 -->
             <section id="tasks-page" class="page active">
-                <div class="filter-bar compact-filter-bar">
-                    <div class="filter-top-row">
-                        <div class="search-input-wrapper">
-                            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="11" cy="11" r="8"></circle>
-                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                <div class="collapsible-filter-container">
+                    <!-- 상시 노출 헤더 바 -->
+                    <div class="filter-control-bar">
+                        <button type="button" class="filter-expand-btn" id="filter-expand-btn" aria-expanded="false" title="검색 및 상세 필터 열기">
+                            <span class="filter-btn-icon">🔍</span>
+                            <span class="filter-btn-label">검색 및 필터</span>
+                            <span class="active-filter-badge" id="active-filter-badge" style="display: none;">0</span>
+                            <span class="active-filter-summary" id="active-filter-summary"></span>
+                            <svg class="filter-chevron" id="filter-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
                             </svg>
-                            <input type="text" id="task-search-input" placeholder="전체 작업 검색 (작업명, 고객명, 태그)..." autocomplete="off">
-                            <button type="button" id="task-search-clear" class="search-clear-btn" style="display: none;" title="검색어 지우기">&times;</button>
-                        </div>
+                        </button>
                         <button class="btn btn-primary btn-add-task-compact" id="add-task-btn">
                             <span>+</span> 새 작업 추가
                         </button>
                     </div>
-                    <div class="filter-bottom-row">
-                        <label class="toggle-label compact-toggle">
-                            <input type="checkbox" id="filter-show-completed">
-                            <span class="toggle-switch"></span>
-                            <span>완료 보기</span>
-                        </label>
-                        <label class="toggle-label compact-toggle">
-                            <input type="checkbox" id="filter-unsettled">
-                            <span class="toggle-switch"></span>
-                            <span>💰 정산 미완료</span>
-                        </label>
-                        <div class="filter-divider"></div>
-                        <select id="filter-channel" class="select-input select-compact">
-                            <option value="">모든 고객</option>
-                        </select>
-                        <select id="filter-type" class="select-input select-compact">
-                            <option value="">모든 종류</option>
-                            <option value="longform">🎬 롱폼</option>
-                            <option value="shortform">📱 숏폼</option>
-                            <option value="thumbnail">🖼️ 썸네일</option>
-                            <option value="other">📝 기타</option>
-                        </select>
-                        <select id="sort-order" class="select-input select-compact">
-                            <option value="recentWork">최근 작업순</option>
-                            <option value="createdDesc">등록 최신순</option>
-                            <option value="dueAsc">예상일 오름차순</option>
-                            <option value="dueDesc">예상일 내림차순</option>
-                        </select>
+
+                    <!-- 클릭 시 펼쳐지는 검색 & 필터 패널 -->
+                    <div class="filter-expanded-panel" id="filter-expanded-panel" style="display: none;">
+                        <div class="filter-top-row">
+                            <div class="search-input-wrapper">
+                                <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                </svg>
+                                <input type="text" id="task-search-input" placeholder="전체 작업 검색 (작업명, 고객명, 태그)..." autocomplete="off">
+                                <button type="button" id="task-search-clear" class="search-clear-btn" style="display: none;" title="검색어 지우기">&times;</button>
+                            </div>
+                            <button type="button" class="btn-filter-reset" id="btn-filter-reset" title="필터 및 검색 초기화">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                                <span>초기화</span>
+                            </button>
+                        </div>
+                        <div class="filter-bottom-row">
+                            <label class="toggle-label compact-toggle">
+                                <input type="checkbox" id="filter-show-completed">
+                                <span class="toggle-switch"></span>
+                                <span>완료 보기</span>
+                            </label>
+                            <label class="toggle-label compact-toggle">
+                                <input type="checkbox" id="filter-unsettled">
+                                <span class="toggle-switch"></span>
+                                <span>💰 정산 미완료</span>
+                            </label>
+                            <div class="filter-divider"></div>
+                            <select id="filter-channel" class="select-input select-compact">
+                                <option value="">모든 고객</option>
+                            </select>
+                            <select id="filter-type" class="select-input select-compact">
+                                <option value="">모든 종류</option>
+                                <option value="longform">🎬 롱폼</option>
+                                <option value="shortform">📱 숏폼</option>
+                                <option value="thumbnail">🖼️ 썸네일</option>
+                                <option value="other">📝 기타</option>
+                            </select>
+                            <select id="sort-order" class="select-input select-compact">
+                                <option value="recentWork">최근 작업순</option>
+                                <option value="createdDesc">등록 최신순</option>
+                                <option value="dueAsc">예상일 오름차순</option>
+                                <option value="dueDesc">예상일 내림차순</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 

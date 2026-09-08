@@ -305,6 +305,10 @@ function initTaskManagement() {
     document.getElementById('filter-channel')?.addEventListener('change', renderTasks);
     document.getElementById('filter-type')?.addEventListener('change', renderTasks);
     document.getElementById('sort-order')?.addEventListener('change', renderTasks);
+
+    // 필터 접힘/펼침 토글 및 초기화
+    document.getElementById('filter-expand-btn')?.addEventListener('click', () => toggleFilterPanel());
+    document.getElementById('btn-filter-reset')?.addEventListener('click', resetAllFilters);
 }
 
 function resetTaskForm() {
@@ -893,6 +897,9 @@ function renderTasks() {
     // 활성화된 타이머 작업들 분리 (복사본 생성)
     const activeTasks = tasks.filter(t => t.isRunning);
 
+    // 필터 인디케이터 배지 및 요약 문구 업데이트
+    updateFilterIndicator();
+
     // 활성화된 작업 섹션 렌더링 (검색 중이 아닐 때만 표시)
     if (activeTasks.length > 0 && !rawSearchQuery) {
         if (activeSection) activeSection.style.display = 'block';
@@ -955,6 +962,118 @@ function renderTasks() {
             if (holdCount) holdCount.textContent = '0';
         }
     }
+}
+
+// ===================================
+// 접힘/펼침 필터 기능
+// ===================================
+function toggleFilterPanel(forceOpen = null) {
+    const panel = document.getElementById('filter-expanded-panel');
+    const btn = document.getElementById('filter-expand-btn');
+    if (!panel || !btn) return;
+
+    const isCurrentlyOpen = (panel.style.display !== 'none');
+    const shouldOpen = forceOpen !== null ? forceOpen : !isCurrentlyOpen;
+
+    if (shouldOpen) {
+        panel.style.display = 'flex';
+        btn.classList.add('is-expanded');
+        btn.setAttribute('aria-expanded', 'true');
+        // 열렸을 때 검색창에 자동 포커스
+        const searchInput = document.getElementById('task-search-input');
+        if (searchInput) {
+            setTimeout(() => searchInput.focus(), 50);
+        }
+    } else {
+        panel.style.display = 'none';
+        btn.classList.remove('is-expanded');
+        btn.setAttribute('aria-expanded', 'false');
+    }
+}
+
+function updateFilterIndicator() {
+    const badge = document.getElementById('active-filter-badge');
+    const summary = document.getElementById('active-filter-summary');
+    if (!badge || !summary) return;
+
+    const searchInput = document.getElementById('task-search-input');
+    const showCompleted = document.getElementById('filter-show-completed')?.checked;
+    const unsettled = document.getElementById('filter-unsettled')?.checked;
+    const channelSelect = document.getElementById('filter-channel');
+    const typeSelect = document.getElementById('filter-type');
+    const sortSelect = document.getElementById('sort-order');
+
+    const rawSearch = searchInput ? searchInput.value.trim() : '';
+    const channelVal = channelSelect ? channelSelect.value : '';
+    const typeVal = typeSelect ? typeSelect.value : '';
+    const sortVal = sortSelect ? sortSelect.value : 'recentWork';
+
+    let count = 0;
+    const summaryParts = [];
+
+    if (rawSearch) {
+        count++;
+        summaryParts.push(`"${rawSearch.length > 7 ? rawSearch.slice(0, 7) + '…' : rawSearch}"`);
+    }
+    if (showCompleted) {
+        count++;
+        summaryParts.push('완료포함');
+    }
+    if (unsettled) {
+        count++;
+        summaryParts.push('정산미완료');
+    }
+    if (channelVal) {
+        count++;
+        const channelName = channelSelect.options[channelSelect.selectedIndex]?.text || '고객';
+        summaryParts.push(channelName.length > 5 ? channelName.slice(0, 5) + '…' : channelName);
+    }
+    if (typeVal) {
+        count++;
+        const typeLabels = { longform: '롱폼', shortform: '숏폼', thumbnail: '썸네일', other: '기타' };
+        summaryParts.push(typeLabels[typeVal] || typeVal);
+    }
+    if (sortVal && sortVal !== 'recentWork') {
+        count++;
+        const sortLabels = { createdDesc: '최신순', dueAsc: '마감임박', dueDesc: '마감여유' };
+        summaryParts.push(sortLabels[sortVal] || '정렬');
+    }
+
+    if (count > 0) {
+        badge.textContent = count;
+        badge.style.display = 'inline-flex';
+        summary.textContent = `• ${summaryParts.join(' · ')}`;
+        summary.style.display = 'inline';
+    } else {
+        badge.style.display = 'none';
+        summary.textContent = '';
+        summary.style.display = 'none';
+    }
+}
+
+function resetAllFilters() {
+    const searchInput = document.getElementById('task-search-input');
+    const searchClearBtn = document.getElementById('task-search-clear');
+    if (searchInput) searchInput.value = '';
+    if (searchClearBtn) searchClearBtn.style.display = 'none';
+
+    const showCompleted = document.getElementById('filter-show-completed');
+    if (showCompleted) showCompleted.checked = false;
+
+    const unsettled = document.getElementById('filter-unsettled');
+    if (unsettled) unsettled.checked = false;
+
+    const channelSelect = document.getElementById('filter-channel');
+    if (channelSelect) channelSelect.value = '';
+
+    const typeSelect = document.getElementById('filter-type');
+    if (typeSelect) typeSelect.value = '';
+
+    const sortSelect = document.getElementById('sort-order');
+    if (sortSelect) sortSelect.value = 'recentWork';
+
+    renderTasks();
+    showToast('검색 및 필터가 초기화되었습니다.', 'info');
 }
 
 function updateVideoDuration(taskId, field, value) {
