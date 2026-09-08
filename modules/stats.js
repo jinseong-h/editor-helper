@@ -416,7 +416,7 @@ function updateInvoicePreview() {
             <div class="formal-meta-grid">
                 <table class="formal-meta-table">
                     <tr>
-                        <th rowspan="4" class="formal-side-th">공<br>급<br>받<br>는<br>자</th>
+                        <th rowspan="2" class="formal-side-th">공<br>급<br>받<br>는<br>자</th>
                         <th class="formal-lbl">고 객 명</th>
                         <td class="formal-val"><strong>${escapeHtml(channelName)}</strong> 귀하</td>
                     </tr>
@@ -424,32 +424,16 @@ function updateInvoicePreview() {
                         <th class="formal-lbl">작업기간</th>
                         <td class="formal-val">${periodText}</td>
                     </tr>
-                    <tr>
-                        <th class="formal-lbl">문서번호</th>
-                        <td class="formal-val">${docNo}</td>
-                    </tr>
-                    <tr>
-                        <th class="formal-lbl">발행일자</th>
-                        <td class="formal-val">${docDateStr}</td>
-                    </tr>
                 </table>
                 <table class="formal-meta-table">
                     <tr>
-                        <th rowspan="4" class="formal-side-th">공<br><br>급<br><br>자</th>
+                        <th rowspan="2" class="formal-side-th">공<br><br>급<br><br>자</th>
                         <th class="formal-lbl">청 구 인</th>
                         <td class="formal-val">${accountHolder ? escapeHtml(accountHolder) : '작업자 (편집자)'}</td>
                     </tr>
                     <tr>
                         <th class="formal-lbl">청구건수</th>
                         <td class="formal-val">총 ${invoiceTasks.length}건</td>
-                    </tr>
-                    <tr>
-                        <th class="formal-lbl">입금은행</th>
-                        <td class="formal-val">${bankName ? escapeHtml(bankName) : '-'}</td>
-                    </tr>
-                    <tr>
-                        <th class="formal-lbl">계좌번호</th>
-                        <td class="formal-val">${accountNumber ? escapeHtml(accountNumber) : '-'}</td>
                     </tr>
                 </table>
             </div>
@@ -500,11 +484,11 @@ function updateInvoicePreview() {
                     <div class="formal-bank-title">■ 입금 계좌 안내</div>
                     <table class="formal-bank-table">
                         <tr>
-                            <th>입금 은행</th>
+                            <th>입금은행</th>
                             <td>${escapeHtml(bankName)}</td>
-                            <th>계좌 번호</th>
+                            <th>계좌번호</th>
                             <td><strong>${escapeHtml(accountNumber)}</strong></td>
-                            <th>예 금 주</th>
+                            <th>예금주</th>
                             <td>${escapeHtml(accountHolder)}</td>
                         </tr>
                     </table>
@@ -517,7 +501,6 @@ function updateInvoicePreview() {
                 <div class="formal-closing-sign">
                     <span>청 구 인 :</span>
                     <span class="formal-signer-name">${accountHolder ? escapeHtml(accountHolder) : '편집자'}</span>
-                    <span class="formal-seal-mark">(인)</span>
                 </div>
             </div>
         </div>
@@ -525,10 +508,20 @@ function updateInvoicePreview() {
 }
 
 function saveBankInfo() {
+    const bankName = document.getElementById('bank-name')?.value.trim() || '';
+    const accountNumber = document.getElementById('account-number')?.value.trim() || '';
+    const accountHolder = document.getElementById('account-holder')?.value.trim() || '';
+
+    // 빈칸 저장 방지 (실수로 기존 계좌 정보가 날아가는 현상 차단)
+    if (!bankName || !accountNumber || !accountHolder) {
+        showToast('은행명, 계좌번호, 예금주를 모두 입력해주세요.', 'warning');
+        return;
+    }
+
     const bankInfo = {
-        bankName: document.getElementById('bank-name')?.value || '',
-        accountNumber: document.getElementById('account-number')?.value || '',
-        accountHolder: document.getElementById('account-holder')?.value || ''
+        bankName,
+        accountNumber,
+        accountHolder
     };
 
     localStorage.setItem(STORAGE_KEYS.BANK_INFO, JSON.stringify(bankInfo));
@@ -539,6 +532,7 @@ function saveBankInfo() {
     }
 
     showToast('입금 정보가 저장되었습니다.', 'success');
+    updateInvoicePreview();
 }
 
 function loadBankInfo() {
@@ -637,7 +631,6 @@ function generateInvoicePDF() {
     // 인쇄용 HTML 생성 (정통 비즈니스 공문서 / 작업내역서 서식)
     const now = new Date();
     const currentDateKorean = `${now.getFullYear()}년 ${String(now.getMonth() + 1).padStart(2, '0')}월 ${String(now.getDate()).padStart(2, '0')}일`;
-    const docNo = `DOC-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}-${Math.floor(1000 + Math.random() * 9000)}`;
 
     const printContent = `
         <!DOCTYPE html>
@@ -817,26 +810,35 @@ function generateInvoicePDF() {
                     font-weight: 600;
                     color: #1f2937;
                     border-bottom: 1px solid #374151;
+                    white-space: nowrap !important;
+                    word-break: keep-all !important;
                 }
                 .bank-table {
                     width: 100%;
                     border-collapse: collapse;
                 }
                 .bank-table th, .bank-table td {
-                    padding: 8px 12px;
+                    padding: 8px 14px;
                     font-size: 12px;
                     border: none;
+                    white-space: nowrap !important;
+                    word-break: keep-all !important;
                 }
                 .bank-table th {
-                    width: 70px;
+                    width: auto;
+                    min-width: 80px;
                     color: #4b5563;
-                    font-weight: 500;
+                    font-weight: 600;
                     background: #fafafa;
                     border-right: 1px solid #e5e7eb;
                     text-align: center;
+                    white-space: nowrap !important;
+                    word-break: keep-all !important;
                 }
                 .bank-table td {
                     color: #111827;
+                    white-space: nowrap !important;
+                    word-break: keep-all !important;
                 }
 
                 /* Closing Section */
@@ -873,18 +875,6 @@ function generateInvoicePDF() {
                     font-weight: 700;
                     letter-spacing: 3px;
                 }
-                .seal-mark {
-                    display: inline-flex;
-                    align-items: center;
-                    justify-content: center;
-                    width: 32px;
-                    height: 32px;
-                    border: 1px dashed #9ca3af;
-                    border-radius: 50%;
-                    font-size: 11px;
-                    color: #6b7280;
-                    margin-left: 6px;
-                }
             </style>
         </head>
         <body>
@@ -896,7 +886,7 @@ function generateInvoicePDF() {
             <div class="meta-container">
                 <table class="meta-table">
                     <tr>
-                        <th rowspan="4" class="meta-side-title">공<br>급<br>받<br>는<br>자</th>
+                        <th rowspan="2" class="meta-side-title">공<br>급<br>받<br>는<br>자</th>
                         <th class="meta-label">고 객 명</th>
                         <td class="meta-value"><strong>${escapeHtml(channelName)}</strong> 귀하</td>
                     </tr>
@@ -904,33 +894,17 @@ function generateInvoicePDF() {
                         <th class="meta-label">작업기간</th>
                         <td class="meta-value">${periodText}</td>
                     </tr>
-                    <tr>
-                        <th class="meta-label">문서번호</th>
-                        <td class="meta-value">${docNo}</td>
-                    </tr>
-                    <tr>
-                        <th class="meta-label">발행일자</th>
-                        <td class="meta-value">${currentDateKorean}</td>
-                    </tr>
                 </table>
 
                 <table class="meta-table">
                     <tr>
-                        <th rowspan="4" class="meta-side-title">공<br><br>급<br><br>자</th>
+                        <th rowspan="2" class="meta-side-title">공<br><br>급<br><br>자</th>
                         <th class="meta-label">청 구 인</th>
                         <td class="meta-value">${accountHolder ? escapeHtml(accountHolder) : '작업자 (편집자)'}</td>
                     </tr>
                     <tr>
                         <th class="meta-label">청구건수</th>
                         <td class="meta-value">총 ${invoiceTasks.length}건</td>
-                    </tr>
-                    <tr>
-                        <th class="meta-label">입금은행</th>
-                        <td class="meta-value">${bankName ? escapeHtml(bankName) : '-'}</td>
-                    </tr>
-                    <tr>
-                        <th class="meta-label">계좌번호</th>
-                        <td class="meta-value">${accountNumber ? escapeHtml(accountNumber) : '-'}</td>
                     </tr>
                 </table>
             </div>
@@ -1000,7 +974,6 @@ function generateInvoicePDF() {
                 <div class="closing-sign">
                     <span>청 구 인 :</span>
                     <span class="signer-name">${accountHolder ? escapeHtml(accountHolder) : '편집자'}</span>
-                    <span class="seal-mark">(인)</span>
                 </div>
             </div>
         </body>

@@ -162,54 +162,43 @@
         <main class="main-content">
             <!-- 작업 목록 페이지 -->
             <section id="tasks-page" class="page active">
-                <div class="page-header">
-                    <h1>작업 목록</h1>
-                    <button class="btn btn-primary" id="add-task-btn">
-                        <span>+</span> 새 작업 추가
-                    </button>
-                </div>
-
-                <div class="filter-bar">
-                    <div class="filter-group search-filter-group">
+                <div class="filter-bar compact-filter-bar">
+                    <div class="filter-top-row">
                         <div class="search-input-wrapper">
                             <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <circle cx="11" cy="11" r="8"></circle>
                                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                             </svg>
-                            <input type="text" id="task-search-input" placeholder="전체 작업 검색 (작업명, 고객명)..." autocomplete="off">
+                            <input type="text" id="task-search-input" placeholder="전체 작업 검색 (작업명, 고객명, 태그)..." autocomplete="off">
                             <button type="button" id="task-search-clear" class="search-clear-btn" style="display: none;" title="검색어 지우기">&times;</button>
                         </div>
+                        <button class="btn btn-primary btn-add-task-compact" id="add-task-btn">
+                            <span>+</span> 새 작업 추가
+                        </button>
                     </div>
-                    <div class="filter-group">
-                        <label class="toggle-label">
+                    <div class="filter-bottom-row">
+                        <label class="toggle-label compact-toggle">
                             <input type="checkbox" id="filter-show-completed">
                             <span class="toggle-switch"></span>
-                            <span>완료된 작업 보기</span>
+                            <span>완료 보기</span>
                         </label>
-                    </div>
-                    <div class="filter-group">
-                        <label class="toggle-label">
+                        <label class="toggle-label compact-toggle">
                             <input type="checkbox" id="filter-unsettled">
                             <span class="toggle-switch"></span>
                             <span>💰 정산 미완료</span>
                         </label>
-                    </div>
-                    <div class="filter-group">
-                        <select id="filter-channel" class="select-input">
+                        <div class="filter-divider"></div>
+                        <select id="filter-channel" class="select-input select-compact">
                             <option value="">모든 고객</option>
                         </select>
-                    </div>
-                    <div class="filter-group">
-                        <select id="filter-type" class="select-input">
+                        <select id="filter-type" class="select-input select-compact">
                             <option value="">모든 종류</option>
                             <option value="longform">🎬 롱폼</option>
                             <option value="shortform">📱 숏폼</option>
                             <option value="thumbnail">🖼️ 썸네일</option>
                             <option value="other">📝 기타</option>
                         </select>
-                    </div>
-                    <div class="filter-group">
-                        <select id="sort-order" class="select-input">
+                        <select id="sort-order" class="select-input select-compact">
                             <option value="recentWork">최근 작업순</option>
                             <option value="createdDesc">등록 최신순</option>
                             <option value="dueAsc">예상일 오름차순</option>
@@ -218,17 +207,35 @@
                     </div>
                 </div>
 
-                <div class="active-tasks-section" id="active-tasks-section" style="display: none; margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border-color);">
-                    <h2
-                        style="font-size: 1.1rem; color: var(--primary-color); margin-bottom: 1rem; padding-left: 0.5rem; border-left: 3px solid var(--primary-color);">
-                        ▶ 현재 작업중</h2>
+                <div class="active-tasks-section" id="active-tasks-section" style="display: none; margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border-color);">
+                    <h2 style="font-size: 1rem; font-weight: 700; color: var(--primary-color); margin-bottom: 0.8rem; padding-left: 0.5rem; border-left: 3px solid var(--primary-color);">
+                        ▶ 현재 작업중
+                    </h2>
                     <div class="tasks-grid" id="active-tasks-grid">
                         <!-- 진행 중인 작업 카드들이 여기에 복사됨 -->
                     </div>
                 </div>
 
-                <div class="tasks-grid" id="tasks-grid">
-                    <!-- 작업 카드들이 여기에 동적으로 추가됨 -->
+                <!-- 진행 중인 작업 구역 -->
+                <div class="tasks-section" id="progress-tasks-section">
+                    <h2 class="tasks-section-title progress">
+                        <span class="section-title-icon">⚡</span> 진행 중인 작업
+                        <span id="progress-tasks-count" class="section-count-badge">0</span>
+                    </h2>
+                    <div class="tasks-grid" id="progress-tasks-grid">
+                        <!-- 진행 중인 작업 카드들 -->
+                    </div>
+                </div>
+
+                <!-- 보류 중인 작업 구역 (확실하게 분리) -->
+                <div class="tasks-section" id="hold-tasks-section" style="display: none;">
+                    <h2 class="tasks-section-title hold">
+                        <span class="section-title-icon">⏸️</span> 보류 중인 작업
+                        <span id="hold-tasks-count" class="section-count-badge">0</span>
+                    </h2>
+                    <div class="tasks-grid" id="hold-tasks-grid">
+                        <!-- 보류 중인 작업 카드들 -->
+                    </div>
                 </div>
 
                 <div class="empty-state" id="empty-tasks" style="display: none;">
@@ -240,10 +247,6 @@
 
             <!-- 통계 페이지 (요약 + 작업시간 통합) -->
             <section id="stats-page" class="page">
-                <div class="page-header">
-                    <h1>통계</h1>
-                </div>
-
                 <!-- 서브탭 -->
                 <div class="stats-sub-tabs">
                     <button class="stats-sub-tab active" data-sub="summary">📊 요약</button>
@@ -373,10 +376,6 @@
 
             <!-- 작업내역서 제작 페이지 -->
             <section id="invoice-page" class="page">
-                <div class="page-header">
-                    <h1>작업내역서 제작</h1>
-                </div>
-
                 <div class="invoice-container">
                     <!-- 고객 선택 -->
                     <div class="invoice-section">
@@ -500,10 +499,6 @@
 
             <!-- 설정 페이지 (프로필 메뉴에서 접근) -->
             <section id="settings-page" class="page">
-                <div class="page-header">
-                    <h1>설정</h1>
-                </div>
-
                 <div class="settings-section">
                     <div class="section-header">
                         <h2>⏱️ PiP 타이머</h2>
@@ -590,9 +585,11 @@
                     <div class="form-group">
                         <label>완성 영상 길이</label>
                         <div class="duration-inputs">
-                            <input type="number" id="task-video-minutes" min="0" placeholder="0" value="0">
+                            <input type="number" id="task-video-minutes" min="0" placeholder="0" value="0"
+                                onfocus="if(this.value==='0')this.value=''" onblur="if(this.value==='')this.value='0'">
                             <span>분</span>
-                            <input type="number" id="task-video-seconds" min="0" max="59" placeholder="0" value="0">
+                            <input type="number" id="task-video-seconds" min="0" max="59" placeholder="0" value="0"
+                                onfocus="if(this.value==='0')this.value=''" onblur="if(this.value==='')this.value='0'">
                             <span>초</span>
                         </div>
                     </div>

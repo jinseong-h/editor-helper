@@ -821,9 +821,13 @@ function createTaskHTML(task) {
                         <div class="video-duration-label">영상 길이</div>
                         <div class="video-duration-inputs">
                             <input type="number" min="0" value="${task.videoDurationMinutes || 0}" 
+                                onfocus="if(this.value==='0')this.value=''" 
+                                onblur="if(this.value===''){this.value='0'; updateVideoDuration('${task.id}', 'minutes', 0);}"
                                 onchange="updateVideoDuration('${task.id}', 'minutes', this.value)">
                             <span>분</span>
                             <input type="number" min="0" max="59" value="${task.videoDurationSeconds || 0}"
+                                onfocus="if(this.value==='0')this.value=''" 
+                                onblur="if(this.value===''){this.value='0'; updateVideoDuration('${task.id}', 'seconds', 0);}"
                                 onchange="updateVideoDuration('${task.id}', 'seconds', this.value)">
                             <span>초</span>
                         </div>
@@ -873,9 +877,14 @@ function createTaskHTML(task) {
 }
 
 function renderTasks() {
-    const grid = document.getElementById('tasks-grid');
     const activeSection = document.getElementById('active-tasks-section');
     const activeGrid = document.getElementById('active-tasks-grid');
+    const progressSection = document.getElementById('progress-tasks-section');
+    const progressGrid = document.getElementById('progress-tasks-grid');
+    const progressCount = document.getElementById('progress-tasks-count');
+    const holdSection = document.getElementById('hold-tasks-section');
+    const holdGrid = document.getElementById('hold-tasks-grid');
+    const holdCount = document.getElementById('hold-tasks-count');
     const emptyState = document.getElementById('empty-tasks');
     const searchInput = document.getElementById('task-search-input');
     const rawSearchQuery = searchInput ? searchInput.value.trim() : '';
@@ -884,38 +893,68 @@ function renderTasks() {
     // 활성화된 타이머 작업들 분리 (복사본 생성)
     const activeTasks = tasks.filter(t => t.isRunning);
 
-    // 활성화된 작업 섹션 렌더링 (검색 중일 때는 혼선을 줄이기 위해 숨기거나 유지하되 검색어가 없을 때만 표시)
+    // 활성화된 작업 섹션 렌더링 (검색 중이 아닐 때만 표시)
     if (activeTasks.length > 0 && !rawSearchQuery) {
-        activeSection.style.display = 'block';
-        activeGrid.innerHTML = activeTasks.map(createTaskHTML).join('');
+        if (activeSection) activeSection.style.display = 'block';
+        if (activeGrid) activeGrid.innerHTML = activeTasks.map(createTaskHTML).join('');
     } else {
-        activeSection.style.display = 'none';
-        activeGrid.innerHTML = '';
+        if (activeSection) activeSection.style.display = 'none';
+        if (activeGrid) activeGrid.innerHTML = '';
     }
 
     if (filtered.length === 0) {
-        grid.innerHTML = '';
-        if (rawSearchQuery) {
-            emptyState.innerHTML = `
-                <div class="empty-icon">🔍</div>
-                <p>'${escapeHtml(rawSearchQuery)}'에 대한 검색 결과가 없습니다</p>
-                <p class="empty-hint">검색어를 확인하거나 필터 초기화 버튼을 눌러보세요.</p>
-            `;
-        } else {
-            emptyState.innerHTML = `
-                <div class="empty-icon">📝</div>
-                <p>등록된 작업이 없습니다</p>
-                <p class="empty-hint">새 작업을 추가해 보세요!</p>
-            `;
+        if (progressSection) progressSection.style.display = 'none';
+        if (holdSection) holdSection.style.display = 'none';
+        if (emptyState) {
+            if (rawSearchQuery) {
+                emptyState.innerHTML = `
+                    <div class="empty-icon">🔍</div>
+                    <p>'${escapeHtml(rawSearchQuery)}'에 대한 검색 결과가 없습니다</p>
+                    <p class="empty-hint">검색어를 확인하거나 필터 초기화 버튼을 눌러보세요.</p>
+                `;
+            } else {
+                emptyState.innerHTML = `
+                    <div class="empty-icon">📝</div>
+                    <p>등록된 작업이 없습니다</p>
+                    <p class="empty-hint">새 작업을 추가해 보세요!</p>
+                `;
+            }
+            emptyState.style.display = 'block';
         }
-        emptyState.style.display = 'block';
         return;
     }
 
-    emptyState.style.display = 'none';
+    if (emptyState) emptyState.style.display = 'none';
 
-    // 전체 목록 (활성화된 작업도 원래 위치에 유지됨)
-    grid.innerHTML = filtered.map(createTaskHTML).join('');
+    // 진행중 / 보류중 작업 분리
+    const progressTasks = filtered.filter(t => t.statusTag !== '보류중');
+    const holdTasks = filtered.filter(t => t.statusTag === '보류중');
+
+    // 진행 중 섹션 렌더링
+    if (progressSection && progressGrid) {
+        if (progressTasks.length > 0) {
+            progressSection.style.display = 'block';
+            progressGrid.innerHTML = progressTasks.map(createTaskHTML).join('');
+            if (progressCount) progressCount.textContent = progressTasks.length;
+        } else {
+            progressSection.style.display = 'block';
+            progressGrid.innerHTML = '<div class="section-empty-msg">현재 진행 중인 작업이 없습니다.</div>';
+            if (progressCount) progressCount.textContent = '0';
+        }
+    }
+
+    // 보류 중 섹션 렌더링 (확실하게 분리된 전용 구역)
+    if (holdSection && holdGrid) {
+        if (holdTasks.length > 0) {
+            holdSection.style.display = 'block';
+            holdGrid.innerHTML = holdTasks.map(createTaskHTML).join('');
+            if (holdCount) holdCount.textContent = holdTasks.length;
+        } else {
+            holdSection.style.display = 'none';
+            holdGrid.innerHTML = '';
+            if (holdCount) holdCount.textContent = '0';
+        }
+    }
 }
 
 function updateVideoDuration(taskId, field, value) {
