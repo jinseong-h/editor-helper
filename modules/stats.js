@@ -313,6 +313,38 @@ function getTruncatedAmount(amount, option) {
     return amount;
 }
 
+function numberToKoreanWon(num) {
+    if (!num || isNaN(num) || num <= 0) return '일금 영 원정';
+    num = Math.floor(num);
+    const digits = ['', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구'];
+    const smallUnits = ['', '십', '백', '천'];
+    const bigUnits = ['', '만', '억', '조'];
+
+    let result = '';
+    let unitCount = 0;
+    let tempNum = num;
+
+    while (tempNum > 0) {
+        const chunk = tempNum % 10000;
+        if (chunk > 0) {
+            let chunkStr = '';
+            let subTemp = chunk;
+            for (let i = 0; i < 4; i++) {
+                const d = subTemp % 10;
+                if (d > 0) {
+                    chunkStr = digits[d] + smallUnits[i] + chunkStr;
+                }
+                subTemp = Math.floor(subTemp / 10);
+            }
+            result = chunkStr + (bigUnits[unitCount] ? bigUnits[unitCount] + ' ' : '') + result;
+        }
+        tempNum = Math.floor(tempNum / 10000);
+        unitCount++;
+    }
+
+    return `일금 ${result.trim()} 원정`;
+}
+
 function updateInvoicePreview() {
     const container = document.getElementById('invoice-preview');
     if (!container) return;
@@ -368,54 +400,126 @@ function updateInvoicePreview() {
     const accountHolder = document.getElementById('account-holder')?.value || '';
     const hasBankInfo = bankName && accountNumber && accountHolder;
 
+    const now = new Date();
+    const docDateStr = `${now.getFullYear()}년 ${String(now.getMonth() + 1).padStart(2, '0')}월 ${String(now.getDate()).padStart(2, '0')}일`;
+    const docNo = `DOC-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+
     container.innerHTML = `
-        <div class="invoice-preview-content">
-            <h2>작업내역서</h2>
-            <div class="invoice-info">
-                <div class="invoice-info-item">
-                    <span class="invoice-info-label">고객:</span>
-                    <span>${escapeHtml(channelName)}</span>
-                </div>
-                <div class="invoice-info-item">
-                    <span class="invoice-info-label">기간:</span>
-                    <span>${periodText}</span>
+        <div class="formal-invoice-doc">
+            <div class="formal-doc-header">
+                <div class="formal-title-wrap">
+                    <h2 class="formal-title">작 &nbsp; 업 &nbsp; 내 &nbsp; 역 &nbsp; 서</h2>
+                    <span class="formal-subtitle">STATEMENT OF WORK / INVOICE</span>
                 </div>
             </div>
-            <table class="invoice-table">
+
+            <div class="formal-meta-grid">
+                <table class="formal-meta-table">
+                    <tr>
+                        <th rowspan="4" class="formal-side-th">공<br>급<br>받<br>는<br>자</th>
+                        <th class="formal-lbl">고 객 명</th>
+                        <td class="formal-val"><strong>${escapeHtml(channelName)}</strong> 귀하</td>
+                    </tr>
+                    <tr>
+                        <th class="formal-lbl">작업기간</th>
+                        <td class="formal-val">${periodText}</td>
+                    </tr>
+                    <tr>
+                        <th class="formal-lbl">문서번호</th>
+                        <td class="formal-val">${docNo}</td>
+                    </tr>
+                    <tr>
+                        <th class="formal-lbl">발행일자</th>
+                        <td class="formal-val">${docDateStr}</td>
+                    </tr>
+                </table>
+                <table class="formal-meta-table">
+                    <tr>
+                        <th rowspan="4" class="formal-side-th">공<br><br>급<br><br>자</th>
+                        <th class="formal-lbl">청 구 인</th>
+                        <td class="formal-val">${accountHolder ? escapeHtml(accountHolder) : '작업자 (편집자)'}</td>
+                    </tr>
+                    <tr>
+                        <th class="formal-lbl">청구건수</th>
+                        <td class="formal-val">총 ${invoiceTasks.length}건</td>
+                    </tr>
+                    <tr>
+                        <th class="formal-lbl">입금은행</th>
+                        <td class="formal-val">${bankName ? escapeHtml(bankName) : '-'}</td>
+                    </tr>
+                    <tr>
+                        <th class="formal-lbl">계좌번호</th>
+                        <td class="formal-val">${accountNumber ? escapeHtml(accountNumber) : '-'}</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="formal-amount-banner">
+                <div class="formal-amount-label">합 계 금 액 (공급가액)</div>
+                <div class="formal-amount-korean">${numberToKoreanWon(totalAmount)}</div>
+                <div class="formal-amount-num">₩ ${totalAmount.toLocaleString()}</div>
+            </div>
+
+            <table class="formal-item-table">
                 <thead>
                     <tr>
-                        <th>번호</th>
-                        <th>작업명</th>
-                        <th>작업종류</th>
-                        <th>영상길이</th>
-                        <th>완료일</th>
-                        <th class="amount">단가</th>
+                        <th style="width: 42px;">No</th>
+                        <th style="width: 95px;">완료일자</th>
+                        <th>작업명 (품목 및 내역)</th>
+                        <th style="width: 75px;">구분</th>
+                        <th style="width: 85px;">영상길이</th>
+                        <th style="width: 100px;">단가</th>
+                        <th style="width: 110px;">공급가액</th>
                     </tr>
                 </thead>
                 <tbody>
                     ${invoiceTasks.map((task, index) => `
                         <tr>
-                            <td>${index + 1}</td>
-                            <td>${escapeHtml(task.name)}</td>
-                            <td>${typeLabels[task.type] || task.type}</td>
-                            <td>${(task.videoDurationMinutes || task.videoDurationSeconds) ? `${task.videoDurationMinutes || 0}분 ${task.videoDurationSeconds || 0}초` : '-'}</td>
-                            <td>${formatFullDate(task.completedAt)}</td>
-                            <td class="amount">${formatCurrency(task.rate)}</td>
+                            <td class="text-center">${index + 1}</td>
+                            <td class="text-center">${formatFullDate(task.completedAt)}</td>
+                            <td class="text-left font-medium">${escapeHtml(task.name)}</td>
+                            <td class="text-center">${typeLabels[task.type] || task.type}</td>
+                            <td class="text-center">${(task.videoDurationMinutes || task.videoDurationSeconds) ? `${task.videoDurationMinutes || 0}분 ${task.videoDurationSeconds || 0}초` : '-'}</td>
+                            <td class="text-right">${(task.rate || 0).toLocaleString()}원</td>
+                            <td class="text-right font-medium">${(task.rate || 0).toLocaleString()}원</td>
                         </tr>
                     `).join('')}
                 </tbody>
+                <tfoot>
+                    <tr class="formal-total-row">
+                        <th colspan="2" class="text-center">합 계</th>
+                        <td colspan="3" class="text-left">총 ${invoiceTasks.length}개 품목</td>
+                        <th class="text-center">총 청구액</th>
+                        <td class="text-right font-bold">₩ ${totalAmount.toLocaleString()}</td>
+                    </tr>
+                </tfoot>
             </table>
-            <div class="invoice-total">
-                <span class="label">총 ${invoiceTasks.length}건</span>
-                <span class="value">${formatCurrency(totalAmount)}</span>
-            </div>
+
             ${hasBankInfo ? `
-                <div class="invoice-bank-info">
-                    <h4>💳 입금 정보</h4>
-                    <p><strong>${escapeHtml(bankName)}</strong> ${escapeHtml(accountNumber)}</p>
-                    <p>예금주: ${escapeHtml(accountHolder)}</p>
+                <div class="formal-bank-block">
+                    <div class="formal-bank-title">■ 입금 계좌 안내</div>
+                    <table class="formal-bank-table">
+                        <tr>
+                            <th>입금 은행</th>
+                            <td>${escapeHtml(bankName)}</td>
+                            <th>계좌 번호</th>
+                            <td><strong>${escapeHtml(accountNumber)}</strong></td>
+                            <th>예 금 주</th>
+                            <td>${escapeHtml(accountHolder)}</td>
+                        </tr>
+                    </table>
                 </div>
             ` : ''}
+
+            <div class="formal-closing">
+                <p class="formal-closing-msg">위와 같이 작업 내역 및 정산 대금을 청구합니다.</p>
+                <p class="formal-closing-date">${docDateStr}</p>
+                <div class="formal-closing-sign">
+                    <span>청 구 인 :</span>
+                    <span class="formal-signer-name">${accountHolder ? escapeHtml(accountHolder) : '편집자'}</span>
+                    <span class="formal-seal-mark">(인)</span>
+                </div>
+            </div>
         </div>
     `;
 }
@@ -530,146 +634,375 @@ function generateInvoicePDF() {
     const accountHolder = document.getElementById('account-holder')?.value || '';
     const hasBankInfo = bankName && accountNumber && accountHolder;
 
-    // 인쇄용 HTML 생성
+    // 인쇄용 HTML 생성 (정통 비즈니스 공문서 / 작업내역서 서식)
+    const now = new Date();
+    const currentDateKorean = `${now.getFullYear()}년 ${String(now.getMonth() + 1).padStart(2, '0')}월 ${String(now.getDate()).padStart(2, '0')}일`;
+    const docNo = `DOC-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}-${Math.floor(1000 + Math.random() * 9000)}`;
+
     const printContent = `
         <!DOCTYPE html>
         <html lang="ko">
         <head>
             <meta charset="UTF-8">
-            <title>작업내역서 - ${channelName}</title>
+            <title>작업내역서_${escapeHtml(channelName)}_${formatDateForFilename(now)}</title>
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
             <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
             <style>
-                * { box-sizing: border-box; margin: 0; padding: 0; }
+                @page {
+                    size: A4 portrait;
+                    margin: 16mm 14mm 16mm 14mm;
+                }
+                * {
+                    box-sizing: border-box;
+                    margin: 0;
+                    padding: 0;
+                    -webkit-print-color-adjust: exact;
+                    print-color-adjust: exact;
+                }
                 body {
-                    font-family: 'Noto Sans KR', sans-serif;
-                    padding: 40px;
-                    color: #333;
-                    background: white;
-                    line-height: 1.6;
-                }
-                h1 {
-                    text-align: center;
-                    font-size: 28px;
-                    margin-bottom: 30px;
-                    border-bottom: 3px solid #333;
-                    padding-bottom: 15px;
-                }
-                .info-section {
-                    display: flex;
-                    justify-content: space-between;
-                    margin-bottom: 25px;
-                    font-size: 14px;
-                }
-                .info-item {
-                    display: flex;
-                    gap: 8px;
-                }
-                .info-label {
-                    color: #666;
-                }
-                table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin-bottom: 25px;
-                }
-                th, td {
-                    border: 1px solid #333;
-                    padding: 10px;
-                    text-align: left;
+                    font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+                    color: #111827;
+                    background: #ffffff;
+                    line-height: 1.5;
                     font-size: 13px;
-                }
-                th {
-                    background: #f5f5f5;
-                    font-weight: 600;
-                }
-                .amount {
-                    text-align: right;
-                }
-                .total-section {
-                    text-align: right;
-                    font-size: 16px;
-                    margin-bottom: 30px;
-                    padding: 15px;
-                    background: #f9f9f9;
-                    border-radius: 8px;
-                }
-                .total-section strong {
-                    font-size: 20px;
-                    color: #5c4ce7;
-                }
-                .bank-section {
-                    border: 2px solid #5c4ce7;
-                    padding: 20px;
-                    border-radius: 8px;
-                    background: #f8f7ff;
-                }
-                .bank-section h4 {
-                    margin-bottom: 12px;
-                    font-size: 14px;
-                    color: #666;
-                }
-                .bank-section p {
-                    margin: 5px 0;
-                    font-size: 15px;
-                }
-                .bank-section strong {
-                    color: #5c4ce7;
+                    padding: 24px;
                 }
                 @media print {
-                    body { padding: 20mm; }
+                    body {
+                        padding: 0;
+                    }
+                }
+
+                /* Header */
+                .doc-header {
+                    text-align: center;
+                    margin-bottom: 24px;
+                    position: relative;
+                }
+                .doc-title {
+                    font-size: 26px;
+                    font-weight: 700;
+                    letter-spacing: 12px;
+                    padding-bottom: 6px;
+                    color: #111827;
+                    border-bottom: 2px solid #111827;
+                    display: inline-block;
+                    margin: 0 auto;
+                }
+                .doc-subtitle {
+                    font-size: 11px;
+                    font-weight: 500;
+                    letter-spacing: 2px;
+                    color: #6b7280;
+                    margin-top: 4px;
+                }
+
+                /* Meta Grid (공급받는자 / 공급자) */
+                .meta-container {
+                    display: flex;
+                    gap: 16px;
+                    margin-bottom: 20px;
+                }
+                .meta-table {
+                    flex: 1;
+                    border-collapse: collapse;
+                    width: 100%;
+                }
+                .meta-table th, .meta-table td {
+                    border: 1px solid #374151;
+                    padding: 6px 10px;
+                    font-size: 12px;
+                }
+                .meta-side-title {
+                    width: 28px;
+                    text-align: center;
+                    background: #f3f4f6;
+                    font-weight: 600;
+                    color: #1f2937;
+                    letter-spacing: 2px;
+                    line-height: 1.4;
+                    padding: 4px 2px !important;
+                }
+                .meta-label {
+                    width: 84px;
+                    background: #f9fafb;
+                    font-weight: 500;
+                    color: #4b5563;
+                    text-align: center;
+                }
+                .meta-value {
+                    color: #111827;
+                }
+
+                /* Total Amount Banner */
+                .amount-banner {
+                    border: 2px solid #111827;
+                    background: #f9fafb;
+                    padding: 12px 18px;
+                    margin-bottom: 20px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+                .amount-label {
+                    font-size: 13px;
+                    font-weight: 600;
+                    color: #374151;
+                    letter-spacing: 1px;
+                }
+                .amount-values {
+                    text-align: right;
+                }
+                .amount-korean {
+                    font-size: 15px;
+                    font-weight: 700;
+                    color: #111827;
+                    letter-spacing: 0.5px;
+                }
+                .amount-number {
+                    font-size: 16px;
+                    font-weight: 700;
+                    color: #111827;
+                    margin-left: 8px;
+                }
+
+                /* Item Table */
+                .item-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 22px;
+                }
+                .item-table thead {
+                    display: table-header-group;
+                }
+                .item-table tr {
+                    page-break-inside: avoid;
+                }
+                .item-table th, .item-table td {
+                    border: 1px solid #374151;
+                    padding: 8px 10px;
+                    font-size: 12px;
+                }
+                .item-table th {
+                    background: #f3f4f6;
+                    font-weight: 600;
+                    color: #1f2937;
+                    text-align: center;
+                    letter-spacing: 0.5px;
+                }
+                .text-center { text-align: center; }
+                .text-left { text-align: left; }
+                .text-right { text-align: right; }
+                .font-medium { font-weight: 500; }
+                .font-bold { font-weight: 700; }
+
+                .item-table tfoot th,
+                .item-table tfoot td {
+                    background: #f9fafb;
+                    font-weight: 700;
+                    padding: 9px 10px;
+                }
+
+                /* Bank Info Box */
+                .bank-box {
+                    border: 1px solid #374151;
+                    margin-bottom: 24px;
+                    page-break-inside: avoid;
+                }
+                .bank-box-header {
+                    background: #f3f4f6;
+                    padding: 6px 12px;
+                    font-size: 12px;
+                    font-weight: 600;
+                    color: #1f2937;
+                    border-bottom: 1px solid #374151;
+                }
+                .bank-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                }
+                .bank-table th, .bank-table td {
+                    padding: 8px 12px;
+                    font-size: 12px;
+                    border: none;
+                }
+                .bank-table th {
+                    width: 70px;
+                    color: #4b5563;
+                    font-weight: 500;
+                    background: #fafafa;
+                    border-right: 1px solid #e5e7eb;
+                    text-align: center;
+                }
+                .bank-table td {
+                    color: #111827;
+                }
+
+                /* Closing Section */
+                .closing-section {
+                    text-align: center;
+                    margin-top: 28px;
+                    page-break-inside: avoid;
+                }
+                .closing-text {
+                    font-size: 14px;
+                    font-weight: 500;
+                    color: #374151;
+                    letter-spacing: 1px;
+                    margin-bottom: 16px;
+                }
+                .closing-date {
+                    font-size: 14px;
+                    font-weight: 500;
+                    color: #111827;
+                    margin-bottom: 22px;
+                    letter-spacing: 1px;
+                }
+                .closing-sign {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 12px;
+                    font-size: 15px;
+                    font-weight: 600;
+                    letter-spacing: 2px;
+                }
+                .signer-name {
+                    font-size: 16px;
+                    font-weight: 700;
+                    letter-spacing: 3px;
+                }
+                .seal-mark {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 32px;
+                    height: 32px;
+                    border: 1px dashed #9ca3af;
+                    border-radius: 50%;
+                    font-size: 11px;
+                    color: #6b7280;
+                    margin-left: 6px;
                 }
             </style>
         </head>
         <body>
-            <h1>작업내역서</h1>
-            <div class="info-section">
-                <div class="info-item">
-                    <span class="info-label">고객:</span>
-                    <span>${escapeHtml(channelName)}</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">기간:</span>
-                    <span>${periodText}</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">발행일:</span>
-                    <span>${formatFullDate(new Date().toISOString())}</span>
+            <div class="doc-header">
+                <h1 class="doc-title">작 &nbsp; 업 &nbsp; 내 &nbsp; 역 &nbsp; 서</h1>
+                <div class="doc-subtitle">STATEMENT OF WORK / INVOICE</div>
+            </div>
+
+            <div class="meta-container">
+                <table class="meta-table">
+                    <tr>
+                        <th rowspan="4" class="meta-side-title">공<br>급<br>받<br>는<br>자</th>
+                        <th class="meta-label">고 객 명</th>
+                        <td class="meta-value"><strong>${escapeHtml(channelName)}</strong> 귀하</td>
+                    </tr>
+                    <tr>
+                        <th class="meta-label">작업기간</th>
+                        <td class="meta-value">${periodText}</td>
+                    </tr>
+                    <tr>
+                        <th class="meta-label">문서번호</th>
+                        <td class="meta-value">${docNo}</td>
+                    </tr>
+                    <tr>
+                        <th class="meta-label">발행일자</th>
+                        <td class="meta-value">${currentDateKorean}</td>
+                    </tr>
+                </table>
+
+                <table class="meta-table">
+                    <tr>
+                        <th rowspan="4" class="meta-side-title">공<br><br>급<br><br>자</th>
+                        <th class="meta-label">청 구 인</th>
+                        <td class="meta-value">${accountHolder ? escapeHtml(accountHolder) : '작업자 (편집자)'}</td>
+                    </tr>
+                    <tr>
+                        <th class="meta-label">청구건수</th>
+                        <td class="meta-value">총 ${invoiceTasks.length}건</td>
+                    </tr>
+                    <tr>
+                        <th class="meta-label">입금은행</th>
+                        <td class="meta-value">${bankName ? escapeHtml(bankName) : '-'}</td>
+                    </tr>
+                    <tr>
+                        <th class="meta-label">계좌번호</th>
+                        <td class="meta-value">${accountNumber ? escapeHtml(accountNumber) : '-'}</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="amount-banner">
+                <div class="amount-label">합 계 금 액 (공급가액)</div>
+                <div class="amount-values">
+                    <span class="amount-korean">${numberToKoreanWon(totalAmount)}</span>
+                    <span class="amount-number">(&#8361; ${totalAmount.toLocaleString()})</span>
                 </div>
             </div>
-            <table>
+
+            <table class="item-table">
                 <thead>
                     <tr>
-                        <th style="width: 50px;">번호</th>
-                        <th>작업명</th>
-                        <th style="width: 80px;">작업종류</th>
-                        <th style="width: 80px;">영상길이</th>
-                        <th style="width: 100px;">완료일</th>
-                        <th style="width: 120px;" class="amount">단가</th>
+                        <th style="width: 38px;">No</th>
+                        <th style="width: 88px;">완료일자</th>
+                        <th>작업명 (품목 및 규격)</th>
+                        <th style="width: 72px;">구분</th>
+                        <th style="width: 85px;">영상길이</th>
+                        <th style="width: 95px;">단가</th>
+                        <th style="width: 105px;">공급가액</th>
                     </tr>
                 </thead>
                 <tbody>
                     ${invoiceTasks.map((task, index) => `
                         <tr>
-                            <td>${index + 1}</td>
-                            <td>${escapeHtml(task.name)}</td>
-                            <td>${typeLabels[task.type] || task.type}</td>
-                            <td>${(task.videoDurationMinutes || task.videoDurationSeconds) ? `${task.videoDurationMinutes || 0}분 ${task.videoDurationSeconds || 0}초` : '-'}</td>
-                            <td>${formatFullDate(task.completedAt)}</td>
-                            <td class="amount">${formatCurrency(task.rate)}</td>
+                            <td class="text-center">${index + 1}</td>
+                            <td class="text-center">${formatFullDate(task.completedAt)}</td>
+                            <td class="text-left font-medium">${escapeHtml(task.name)}</td>
+                            <td class="text-center">${typeLabels[task.type] || task.type}</td>
+                            <td class="text-center">${(task.videoDurationMinutes || task.videoDurationSeconds) ? `${task.videoDurationMinutes || 0}분 ${task.videoDurationSeconds || 0}초` : '-'}</td>
+                            <td class="text-right">${(task.rate || 0).toLocaleString()}원</td>
+                            <td class="text-right font-medium">${(task.rate || 0).toLocaleString()}원</td>
                         </tr>
                     `).join('')}
                 </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="2" class="text-center">합 계</th>
+                        <td colspan="3" class="text-left font-medium">총 ${invoiceTasks.length}개 품목</td>
+                        <th class="text-center">총 청구액</th>
+                        <td class="text-right font-bold">&#8361; ${totalAmount.toLocaleString()}</td>
+                    </tr>
+                </tfoot>
             </table>
-            <div class="total-section">
-                총 ${invoiceTasks.length}건 &nbsp;&nbsp;|&nbsp;&nbsp; 합계: <strong>${formatCurrency(totalAmount)}</strong>
-            </div>
+
             ${hasBankInfo ? `
-                <div class="bank-section">
-                    <h4>💳 입금 안내</h4>
-                    <p><strong>${escapeHtml(bankName)}</strong> ${escapeHtml(accountNumber)}</p>
-                    <p>예금주: ${escapeHtml(accountHolder)}</p>
+                <div class="bank-box">
+                    <div class="bank-box-header">■ 입금 계좌 안내</div>
+                    <table class="bank-table">
+                        <tr>
+                            <th>입금 은행</th>
+                            <td>${escapeHtml(bankName)}</td>
+                            <th style="border-left: 1px solid #e5e7eb;">계좌 번호</th>
+                            <td><strong>${escapeHtml(accountNumber)}</strong></td>
+                            <th style="border-left: 1px solid #e5e7eb;">예 금 주</th>
+                            <td>${escapeHtml(accountHolder)}</td>
+                        </tr>
+                    </table>
                 </div>
             ` : ''}
+
+            <div class="closing-section">
+                <p class="closing-text">위와 같이 작업 내역 및 정산 대금을 청구합니다.</p>
+                <p class="closing-date">${currentDateKorean}</p>
+                <div class="closing-sign">
+                    <span>청 구 인 :</span>
+                    <span class="signer-name">${accountHolder ? escapeHtml(accountHolder) : '편집자'}</span>
+                    <span class="seal-mark">(인)</span>
+                </div>
+            </div>
         </body>
         </html>
     `;

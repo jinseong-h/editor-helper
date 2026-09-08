@@ -170,6 +170,16 @@
                 </div>
 
                 <div class="filter-bar">
+                    <div class="filter-group search-filter-group">
+                        <div class="search-input-wrapper">
+                            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                            <input type="text" id="task-search-input" placeholder="전체 작업 검색 (작업명, 고객명)..." autocomplete="off">
+                            <button type="button" id="task-search-clear" class="search-clear-btn" style="display: none;" title="검색어 지우기">&times;</button>
+                        </div>
+                    </div>
                     <div class="filter-group">
                         <label class="toggle-label">
                             <input type="checkbox" id="filter-show-completed">
@@ -591,6 +601,19 @@
                     <label for="task-rate">단가 (원)</label>
                     <input type="text" id="task-rate" placeholder="자동 계산됨">
                     <small class="form-hint" id="rate-hint"></small>
+                </div>
+                <div class="form-group">
+                    <label>상태 태그</label>
+                    <div class="status-tag-selector">
+                        <label class="tag-radio-label tag-progress">
+                            <input type="radio" name="task-tag" value="진행중" checked>
+                            <span class="tag-radio-badge tag-progress-badge">● 진행중</span>
+                        </label>
+                        <label class="tag-radio-label tag-hold">
+                            <input type="radio" name="task-tag" value="보류중">
+                            <span class="tag-radio-badge tag-hold-badge">● 보류중</span>
+                        </label>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" id="task-cancel-btn">취소</button>

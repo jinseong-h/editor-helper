@@ -258,6 +258,35 @@ function initTaskManagement() {
         e.target.value = val ? parseInt(val, 10).toLocaleString() : '';
     });
 
+    // 작업 검색 기능 (검색어 입력 시 필터 무시하고 전체 검색)
+    const searchInput = document.getElementById('task-search-input');
+    const searchClearBtn = document.getElementById('task-search-clear');
+
+    searchInput?.addEventListener('input', (e) => {
+        const val = e.target.value;
+        if (searchClearBtn) {
+            searchClearBtn.style.display = val ? 'flex' : 'none';
+        }
+        renderTasks();
+    });
+
+    searchInput?.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            searchInput.value = '';
+            if (searchClearBtn) searchClearBtn.style.display = 'none';
+            renderTasks();
+        }
+    });
+
+    searchClearBtn?.addEventListener('click', () => {
+        if (searchInput) {
+            searchInput.value = '';
+            searchClearBtn.style.display = 'none';
+            searchInput.focus();
+            renderTasks();
+        }
+    });
+
     // 필터링 — 두 토글은 상호 배타적
     document.getElementById('filter-show-completed')?.addEventListener('change', (e) => {
         if (e.target.checked) {
@@ -289,6 +318,10 @@ function resetTaskForm() {
     document.getElementById('task-rate').value = '';
     document.getElementById('task-rate').removeAttribute('data-auto-calculated');
     document.getElementById('rate-hint').textContent = '';
+
+    // 상태 태그 기본값: '진행중'
+    const defaultTagRadio = document.querySelector('input[name="task-tag"][value="진행중"]');
+    if (defaultTagRadio) defaultTagRadio.checked = true;
 
     const customInput = document.getElementById('task-channel-custom');
     if (customInput) {
@@ -382,6 +415,7 @@ function saveTask() {
     const videoMinutes = parseInt(document.getElementById('task-video-minutes').value) || 0;
     const videoSeconds = parseInt(document.getElementById('task-video-seconds').value) || 0;
     const rate = parseInt(document.getElementById('task-rate').value.replace(/,/g, '')) || 0;
+    const statusTag = document.querySelector('input[name="task-tag"]:checked')?.value || '진행중';
 
     if (!name || !channelId) {
         showToast('작업명과 고객을 선택해주세요.', 'warning');
@@ -399,6 +433,7 @@ function saveTask() {
             task.videoDurationMinutes = videoMinutes;
             task.videoDurationSeconds = videoSeconds;
             task.rate = rate;
+            task.statusTag = statusTag;
         }
         showToast('작업이 수정되었습니다.', 'success');
     } else {
@@ -409,6 +444,7 @@ function saveTask() {
             channelId,
             type,
             dueDate,
+            statusTag,
             createdAt: new Date().toISOString(),
             completedAt: null,
             isCompleted: false,
@@ -443,6 +479,11 @@ function editTask(id) {
     document.getElementById('task-video-seconds').value = task.videoDurationSeconds || '0';
     document.getElementById('task-rate').value = task.rate ? task.rate.toLocaleString() : '';
 
+    // 상태 태그 로드
+    const currentTag = task.statusTag || '진행중';
+    const tagRadio = document.querySelector(`input[name="task-tag"][value="${currentTag}"]`);
+    if (tagRadio) tagRadio.checked = true;
+
     // 기존 작업을 수정하는 경우 수동 입력된 값으로 간주하여 자동 계산 덮어쓰기 방지
     document.getElementById('task-rate').removeAttribute('data-auto-calculated');
 
@@ -469,6 +510,21 @@ function editTask(id) {
 
     document.getElementById('task-modal-title').textContent = '작업 수정';
     openModal('task-modal');
+}
+
+// 작업 카드에서 태그 원클릭 토글 (진행중 ↔ 보류중)
+function toggleTaskStatusTag(taskId, event) {
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    task.statusTag = (task.statusTag === '보류중') ? '진행중' : '보류중';
+    saveData();
+    renderTasks();
+    showToast(`'${task.name}' 작업이 [${task.statusTag}] 상태로 변경되었습니다.`, 'info');
 }
 
 function deleteTask(id) {
@@ -609,35 +665,66 @@ function updateChannelSelects() {
 }
 
 function getFilteredTasks() {
-    const showCompleted = document.getElementById('filter-show-completed')?.checked || false;
-    const showUnsettled = document.getElementById('filter-unsettled')?.checked || false;
-    const filterChannel = document.getElementById('filter-channel')?.value || '';
-    const filterType = document.getElementById('filter-type')?.value || '';
+    const searchInput = document.getElementById('task-search-input');
+    const rawSearchQuery = searchInput ? searchInput.value.trim() : '';
+    const searchQuery = rawSearchQuery.toLowerCase();
     const sortOrder = document.getElementById('sort-order')?.value || 'createdDesc';
 
     let filtered = [...tasks];
 
-    // 정산 미완료 필터 (완료되었지만 정산이 안 된 작업)
-    if (showUnsettled) {
-        filtered = filtered.filter(t => t.isCompleted && !t.isSettled);
-    } else if (!showCompleted) {
-        // 기본적으로 미완료 작업만 보기
-        filtered = filtered.filter(t => !t.isCompleted);
-    }
+    // 검색어가 입력되어 있으면 필터(완료, 정산미완료, 고객, 종류)를 무시하고 전체 작업 중에서 검색!
+    if (searchQuery) {
+        const cleanQuery = searchQuery.replace(/\s+/g, '');
+        filtered = filtered.filter(t => {
+            const name = (t.name || '').toLowerCase();
+            const cleanName = name.replace(/\s+/g, '');
 
-    // 고객 필터
-    if (filterChannel) {
-        filtered = filtered.filter(t => t.channelId === filterChannel);
-    }
+            let channelName = '';
+            if (t.channelId === '__unassigned__') {
+                channelName = '고객 미지정';
+            } else if (t.channelId && t.channelId.startsWith('__custom__::')) {
+                channelName = t.channelId.replace('__custom__::', '');
+            } else {
+                const ch = channels.find(c => c.id === t.channelId);
+                channelName = ch ? ch.name : '';
+            }
+            const lowerChannel = channelName.toLowerCase();
+            const cleanChannel = lowerChannel.replace(/\s+/g, '');
+            const tag = (t.statusTag || '진행중').toLowerCase();
 
-    // 작업 종류 필터
-    if (filterType) {
-        filtered = filtered.filter(t => t.type === filterType);
+            return name.includes(searchQuery) ||
+                   cleanName.includes(cleanQuery) ||
+                   lowerChannel.includes(searchQuery) ||
+                   cleanChannel.includes(cleanQuery) ||
+                   tag.includes(searchQuery);
+        });
+    } else {
+        const showCompleted = document.getElementById('filter-show-completed')?.checked || false;
+        const showUnsettled = document.getElementById('filter-unsettled')?.checked || false;
+        const filterChannel = document.getElementById('filter-channel')?.value || '';
+        const filterType = document.getElementById('filter-type')?.value || '';
+
+        // 정산 미완료 필터 (완료되었지만 정산이 안 된 작업)
+        if (showUnsettled) {
+            filtered = filtered.filter(t => t.isCompleted && !t.isSettled);
+        } else if (!showCompleted) {
+            // 기본적으로 미완료 작업만 보기
+            filtered = filtered.filter(t => !t.isCompleted);
+        }
+
+        // 고객 필터
+        if (filterChannel) {
+            filtered = filtered.filter(t => t.channelId === filterChannel);
+        }
+
+        // 작업 종류 필터
+        if (filterType) {
+            filtered = filtered.filter(t => t.type === filterType);
+        }
     }
 
     // 정렬
     filtered.sort((a, b) => {
-
         switch (sortOrder) {
             case 'recentWork':
                 const aTime = a.lastWorkedAt || new Date(a.createdAt).getTime();
@@ -680,12 +767,16 @@ function createTaskHTML(task) {
         other: '기타'
     };
 
+    const statusTag = task.statusTag || '진행중';
+    const isHold = statusTag === '보류중';
+
     const elapsedSeconds = getTaskElapsedSeconds(task);
     const timeDisplay = formatTime(elapsedSeconds);
     const hourlyRate = calculateHourlyRate(task.rate, elapsedSeconds);
 
     let cardClass = 'task-card';
     cardClass += ` type-${task.type}`;
+    if (isHold) cardClass += ' status-hold';
     if (task.isRunning) cardClass += ' running';
     if (task.isCompleted) cardClass += ' completed';
     if (task.isSettled) cardClass += ' settled';
@@ -696,6 +787,11 @@ function createTaskHTML(task) {
                 <div class="task-header-left">
                     <h3 class="task-title">${escapeHtml(task.name)}</h3>
                     <div class="task-meta">
+                        <button type="button" class="task-tag-badge ${isHold ? 'tag-hold' : 'tag-progress'}" 
+                            onclick="toggleTaskStatusTag('${task.id}', event)" 
+                            title="클릭하여 상태 변경 (진행중 ↔ 보류중)">
+                            <span class="tag-dot"></span>${statusTag}
+                        </button>
                         <span class="task-badge">📺 ${escapeHtml(channelName)}</span>
                         <span class="task-badge type-${task.type}">${typeLabels[task.type]}</span>
                         ${task.dueDate ? `<span class="task-badge">📅 ${formatDate(task.dueDate)}</span>` : ''}
@@ -781,13 +877,15 @@ function renderTasks() {
     const activeSection = document.getElementById('active-tasks-section');
     const activeGrid = document.getElementById('active-tasks-grid');
     const emptyState = document.getElementById('empty-tasks');
+    const searchInput = document.getElementById('task-search-input');
+    const rawSearchQuery = searchInput ? searchInput.value.trim() : '';
     const filtered = getFilteredTasks();
 
     // 활성화된 타이머 작업들 분리 (복사본 생성)
     const activeTasks = tasks.filter(t => t.isRunning);
 
-    // 활성화된 작업 섹션 렌더링
-    if (activeTasks.length > 0) {
+    // 활성화된 작업 섹션 렌더링 (검색 중일 때는 혼선을 줄이기 위해 숨기거나 유지하되 검색어가 없을 때만 표시)
+    if (activeTasks.length > 0 && !rawSearchQuery) {
         activeSection.style.display = 'block';
         activeGrid.innerHTML = activeTasks.map(createTaskHTML).join('');
     } else {
@@ -797,6 +895,19 @@ function renderTasks() {
 
     if (filtered.length === 0) {
         grid.innerHTML = '';
+        if (rawSearchQuery) {
+            emptyState.innerHTML = `
+                <div class="empty-icon">🔍</div>
+                <p>'${escapeHtml(rawSearchQuery)}'에 대한 검색 결과가 없습니다</p>
+                <p class="empty-hint">검색어를 확인하거나 필터 초기화 버튼을 눌러보세요.</p>
+            `;
+        } else {
+            emptyState.innerHTML = `
+                <div class="empty-icon">📝</div>
+                <p>등록된 작업이 없습니다</p>
+                <p class="empty-hint">새 작업을 추가해 보세요!</p>
+            `;
+        }
         emptyState.style.display = 'block';
         return;
     }

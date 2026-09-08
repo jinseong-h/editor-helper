@@ -514,6 +514,71 @@ body {
     gap: var(--space-sm);
 }
 
+/* Search Filter Group */
+.search-filter-group {
+    flex: 1 1 240px;
+    min-width: 200px;
+}
+
+.search-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.search-input-wrapper .search-icon {
+    position: absolute;
+    left: 10px;
+    width: 16px;
+    height: 16px;
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+#task-search-input {
+    width: 100%;
+    padding: var(--space-xs) 28px var(--space-xs) 32px;
+    height: 38px;
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--border-color);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-size: var(--font-size-sm);
+    font-family: inherit;
+    transition: var(--transition-normal);
+}
+
+#task-search-input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px rgba(138, 45, 59, 0.15);
+    background: var(--bg-card);
+}
+
+.search-clear-btn {
+    position: absolute;
+    right: 8px;
+    width: 20px;
+    height: 20px;
+    border: none;
+    background: var(--text-muted);
+    color: var(--bg-card);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+    transition: var(--transition-fast);
+}
+
+.search-clear-btn:hover {
+    background: var(--text-secondary);
+}
+
 .filter-group label:not(.toggle-label):not(.radio-label) {
     font-size: var(--font-size-sm);
     color: var(--text-secondary);
@@ -838,6 +903,137 @@ body {
 .task-badge.type-other {
     background: rgba(154, 133, 133, 0.1);
     color: var(--text-secondary);
+}
+
+/* ===================================
+   Status Tag (진행중 / 보류중)
+   =================================== */
+
+/* Status Tag Selector in Modal */
+.status-tag-selector {
+    display: flex;
+    gap: var(--space-sm);
+    margin-top: 6px;
+}
+
+.tag-radio-label {
+    flex: 1;
+    cursor: pointer;
+}
+
+.tag-radio-label input {
+    display: none;
+}
+
+.tag-radio-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 14px;
+    border-radius: var(--border-radius-sm);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    border: 1px solid var(--border-color);
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    transition: var(--transition-normal);
+}
+
+.tag-radio-label.tag-progress input:checked + .tag-radio-badge {
+    background: #ecfdf5;
+    border-color: #10b981;
+    color: #065f46;
+}
+
+.tag-radio-label.tag-hold input:checked + .tag-radio-badge {
+    background: #fffbeb;
+    border-color: #f59e0b;
+    color: #92400e;
+}
+
+[data-theme="dark"] .tag-radio-label.tag-progress input:checked + .tag-radio-badge {
+    background: rgba(16, 185, 129, 0.2);
+    border-color: #059669;
+    color: #6ee7b7;
+}
+
+[data-theme="dark"] .tag-radio-label.tag-hold input:checked + .tag-radio-badge {
+    background: rgba(245, 158, 11, 0.2);
+    border-color: #d97706;
+    color: #fcd34d;
+}
+
+/* Task Tag Badge on Card */
+.task-tag-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 9999px;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: var(--transition-fast);
+    line-height: 1.3;
+    user-select: none;
+}
+
+.task-tag-badge:hover {
+    filter: brightness(0.94);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.task-tag-badge .tag-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+/* 진행중: 산뜻하고 안정적인 에메랄드/세이지 그린 */
+.task-tag-badge.tag-progress {
+    background: #ecfdf5;
+    color: #065f46;
+    border-color: #a7f3d0;
+}
+.task-tag-badge.tag-progress .tag-dot {
+    background: #10b981;
+}
+
+/* 보류중: 명확하게 구분되는 차분한 앰버/오렌지 */
+.task-tag-badge.tag-hold {
+    background: #fffbeb;
+    color: #92400e;
+    border-color: #fde68a;
+}
+.task-tag-badge.tag-hold .tag-dot {
+    background: #f59e0b;
+}
+
+/* 다크모드 대응 */
+[data-theme="dark"] .task-tag-badge.tag-progress {
+    background: rgba(16, 185, 129, 0.15);
+    color: #6ee7b7;
+    border-color: rgba(16, 185, 129, 0.35);
+}
+[data-theme="dark"] .task-tag-badge.tag-progress .tag-dot {
+    background: #34d399;
+}
+
+[data-theme="dark"] .task-tag-badge.tag-hold {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fcd34d;
+    border-color: rgba(245, 158, 11, 0.35);
+}
+[data-theme="dark"] .task-tag-badge.tag-hold .tag-dot {
+    background: #fbbf24;
+}
+
+/* 보류 상태 카드 시각적 구분 */
+.task-card.status-hold {
+    border-left: 4px solid #f59e0b !important;
 }
 
 /* Compact Card Layout */
@@ -2168,99 +2364,306 @@ form {
     font-size: var(--font-size-lg);
 }
 
-/* Invoice Preview Content */
-.invoice-preview-content {
-    color: var(--text-primary);
+/* ===================================
+   Formal Invoice Preview & Document
+   =================================== */
+.formal-invoice-doc {
+    background: #ffffff;
+    color: #111827;
+    border: 1px solid #d1d5db;
+    border-radius: var(--border-radius-sm);
+    padding: var(--space-xl);
+    font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+    box-shadow: var(--shadow-sm);
 }
 
-.invoice-preview-content h2 {
+[data-theme="dark"] .formal-invoice-doc {
+    background: #18191c;
+    color: #f3f4f6;
+    border-color: #374151;
+}
+
+.formal-doc-header {
     text-align: center;
-    font-size: var(--font-size-2xl);
     margin-bottom: var(--space-lg);
 }
 
-.invoice-info {
+.formal-title-wrap {
+    display: inline-block;
+}
+
+.formal-title {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 10px;
+    color: inherit;
+    border-bottom: 2px solid currentColor;
+    padding-bottom: 6px;
+    margin: 0;
+}
+
+.formal-subtitle {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: #6b7280;
+    margin-top: 4px;
+    font-weight: 500;
+}
+
+[data-theme="dark"] .formal-subtitle {
+    color: #9ca3af;
+}
+
+.formal-meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+}
+
+@media (max-width: 680px) {
+    .formal-meta-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.formal-meta-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.formal-meta-table th,
+.formal-meta-table td {
+    border: 1px solid #374151;
+    padding: 6px 10px;
+    font-size: 12px;
+}
+
+[data-theme="dark"] .formal-meta-table th,
+[data-theme="dark"] .formal-meta-table td {
+    border-color: #4b5563;
+}
+
+.formal-side-th {
+    width: 28px;
+    text-align: center;
+    background: #f3f4f6;
+    color: #1f2937;
+    font-weight: 600;
+    letter-spacing: 2px;
+    line-height: 1.4;
+    padding: 4px 2px !important;
+}
+
+[data-theme="dark"] .formal-side-th {
+    background: #23272e;
+    color: #e5e7eb;
+}
+
+.formal-lbl {
+    width: 76px;
+    background: #f9fafb;
+    color: #4b5563;
+    font-weight: 500;
+    text-align: center;
+}
+
+[data-theme="dark"] .formal-lbl {
+    background: #1f232b;
+    color: #9ca3af;
+}
+
+.formal-val {
+    color: inherit;
+}
+
+.formal-amount-banner {
+    border: 2px solid #111827;
+    background: #f9fafb;
+    padding: 12px 18px;
+    margin-bottom: var(--space-lg);
     display: flex;
     justify-content: space-between;
-    margin-bottom: var(--space-lg);
-    padding-bottom: var(--space-md);
-    border-bottom: 1px solid var(--border-color);
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
-.invoice-info-item {
-    display: flex;
-    gap: var(--space-sm);
+[data-theme="dark"] .formal-amount-banner {
+    border-color: #6b7280;
+    background: #21252d;
 }
 
-.invoice-info-label {
-    color: var(--text-muted);
+.formal-amount-label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: inherit;
 }
 
-.invoice-table {
+.formal-amount-korean {
+    font-size: 15px;
+    font-weight: 700;
+    color: inherit;
+}
+
+.formal-amount-num {
+    font-size: 16px;
+    font-weight: 700;
+    color: inherit;
+    margin-left: 8px;
+}
+
+.formal-item-table {
     width: 100%;
     border-collapse: collapse;
     margin-bottom: var(--space-lg);
 }
 
-.invoice-table th,
-.invoice-table td {
-    padding: var(--space-sm) var(--space-md);
-    text-align: left;
-    border-bottom: 1px solid var(--border-color);
+.formal-item-table th,
+.formal-item-table td {
+    border: 1px solid #374151;
+    padding: 8px 10px;
+    font-size: 12px;
 }
 
-.invoice-table th {
-    background: var(--bg-tertiary);
-    color: var(--text-secondary);
-    font-weight: 500;
-    font-size: var(--font-size-sm);
+[data-theme="dark"] .formal-item-table th,
+[data-theme="dark"] .formal-item-table td {
+    border-color: #4b5563;
 }
 
-.invoice-table td {
-    font-size: var(--font-size-sm);
+.formal-item-table th {
+    background: #f3f4f6;
+    font-weight: 600;
+    color: #1f2937;
+    text-align: center;
 }
 
-.invoice-table td.amount {
-    text-align: right;
+[data-theme="dark"] .formal-item-table th {
+    background: #23272e;
+    color: #e5e7eb;
 }
 
-.invoice-total {
-    display: flex;
-    justify-content: flex-end;
-    gap: var(--space-xl);
-    padding: var(--space-md);
-    background: var(--bg-tertiary);
-    border-radius: var(--border-radius-sm);
+.formal-item-table .text-center { text-align: center; }
+.formal-item-table .text-left { text-align: left; }
+.formal-item-table .text-right { text-align: right; }
+.formal-item-table .font-medium { font-weight: 500; }
+.formal-item-table .font-bold { font-weight: 700; }
+
+.formal-total-row th,
+.formal-total-row td {
+    background: #f9fafb;
+    font-weight: 700;
+    padding: 9px 10px;
+}
+
+[data-theme="dark"] .formal-total-row th,
+[data-theme="dark"] .formal-total-row td {
+    background: #1f232b;
+}
+
+.formal-bank-block {
+    border: 1px solid #374151;
     margin-bottom: var(--space-lg);
 }
 
-.invoice-total .label {
-    font-size: var(--font-size-lg);
-    color: var(--text-secondary);
+[data-theme="dark"] .formal-bank-block {
+    border-color: #4b5563;
 }
 
-.invoice-total .value {
-    font-size: var(--font-size-xl);
+.formal-bank-title {
+    background: #f3f4f6;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    border-bottom: 1px solid #374151;
+    color: #1f2937;
+}
+
+[data-theme="dark"] .formal-bank-title {
+    background: #23272e;
+    border-color: #4b5563;
+    color: #e5e7eb;
+}
+
+.formal-bank-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.formal-bank-table th,
+.formal-bank-table td {
+    padding: 8px 12px;
+    font-size: 12px;
+    border: none;
+}
+
+.formal-bank-table th {
+    width: 70px;
+    font-weight: 500;
+    color: #4b5563;
+    background: #fafafa;
+    border-right: 1px solid #e5e7eb;
+    text-align: center;
+}
+
+[data-theme="dark"] .formal-bank-table th {
+    color: #9ca3af;
+    background: #1c2027;
+    border-right-color: #374151;
+}
+
+.formal-closing {
+    text-align: center;
+    margin-top: var(--space-lg);
+}
+
+.formal-closing-msg {
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    color: inherit;
+}
+
+.formal-closing-date {
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+    color: inherit;
+}
+
+.formal-closing-sign {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 2px;
+}
+
+.formal-signer-name {
+    font-size: 15px;
     font-weight: 700;
-    color: var(--accent-primary-light);
+    letter-spacing: 3px;
 }
 
-.invoice-bank-info {
-    background: rgba(138, 45, 59, 0.06);
-    border: 1px solid rgba(138, 45, 59, 0.2);
-    border-radius: var(--border-radius-md);
-    padding: var(--space-md);
-}
-
-.invoice-bank-info h4 {
-    font-size: var(--font-size-sm);
-    color: var(--text-secondary);
-    margin-bottom: var(--space-sm);
-}
-
-.invoice-bank-info p {
-    font-size: var(--font-size-base);
-    margin-bottom: var(--space-xs);
+.formal-seal-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: 1px dashed #9ca3af;
+    border-radius: 50%;
+    font-size: 10px;
+    color: #6b7280;
+    margin-left: 6px;
 }
 
 .invoice-bank-info strong {
