@@ -793,9 +793,7 @@ function createTaskHTML(task) {
                     <div class="task-meta">
                         <button type="button" class="task-tag-badge ${isHold ? 'tag-hold' : 'tag-progress'}" 
                             onclick="toggleTaskStatusTag('${task.id}', event)" 
-                            title="클릭하여 상태 변경 (진행중 ↔ 보류중)">
-                            <span class="tag-dot"></span>${statusTag}
-                        </button>
+                            title="클릭하여 상태 변경 (진행중 ↔ 보류중)">${statusTag}</button>
                         <span class="task-badge">📺 ${escapeHtml(channelName)}</span>
                         <span class="task-badge type-${task.type}">${typeLabels[task.type]}</span>
                         ${task.dueDate ? `<span class="task-badge">📅 ${formatDate(task.dueDate)}</span>` : ''}

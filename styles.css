@@ -1248,8 +1248,8 @@ body {
 .task-tag-badge {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    padding: 3px 9px;
+    justify-content: center;
+    padding: 3px 10px;
     border-radius: 9999px;
     font-size: var(--font-size-xs);
     font-weight: 600;
@@ -1266,21 +1266,11 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
-.task-tag-badge .tag-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    display: inline-block;
-}
-
 /* 진행중: 산뜻하고 안정적인 에메랄드/세이지 그린 */
 .task-tag-badge.tag-progress {
     background: #ecfdf5;
     color: #065f46;
     border-color: #a7f3d0;
-}
-.task-tag-badge.tag-progress .tag-dot {
-    background: #10b981;
 }
 
 /* 보류중: 명확하게 구분되는 차분한 앰버/오렌지 */
@@ -1289,9 +1279,6 @@ body {
     color: #92400e;
     border-color: #fde68a;
 }
-.task-tag-badge.tag-hold .tag-dot {
-    background: #f59e0b;
-}
 
 /* 다크모드 대응 */
 [data-theme="dark"] .task-tag-badge.tag-progress {
@@ -1299,17 +1286,11 @@ body {
     color: #6ee7b7;
     border-color: rgba(16, 185, 129, 0.35);
 }
-[data-theme="dark"] .task-tag-badge.tag-progress .tag-dot {
-    background: #34d399;
-}
 
 [data-theme="dark"] .task-tag-badge.tag-hold {
     background: rgba(245, 158, 11, 0.15);
     color: #fcd34d;
     border-color: rgba(245, 158, 11, 0.35);
-}
-[data-theme="dark"] .task-tag-badge.tag-hold .tag-dot {
-    background: #fbbf24;
 }
 
 /* 보류 상태 카드 시각적 구분 */
